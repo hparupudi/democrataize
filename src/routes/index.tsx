@@ -175,32 +175,32 @@ function Index() {
 
         {step === "results" && (
           <div className="space-y-6">
-            <p className="text-sm text-muted-foreground">
-              Races for <b className="text-foreground">{location || address}</b>. Researched by AI using primary sources only (voting records, official sites) — double-check with your official sample ballot.
+            <p className="glass px-5 py-3 text-sm text-muted-foreground">
+              <MapPin className="mr-1 inline h-4 w-4 text-primary" />Races for <b className="text-foreground">{location || address}</b>. Researched by AI using primary sources only (voting records, official sites) — double-check with your official sample ballot.
             </p>
-            {results.map((c) => (
-              <article key={c.name} className="rounded-lg border bg-card p-5">
+            {results.map((c, idx) => (
+              <article key={c.name} className="glass rise-in p-6" style={{ animationDelay: `${idx * 80}ms` }}>
                 <div className="flex gap-4">
                   {c.image ? (
-                    <img src={c.image} alt={c.name} className="h-24 w-20 shrink-0 rounded-md object-cover" />
+                    <img src={c.image} alt={c.name} className="h-24 w-20 shrink-0 rounded-2xl border-2 border-card object-cover shadow-md" />
                   ) : (
-                    <div className="flex h-24 w-20 shrink-0 items-center justify-center rounded-md bg-muted font-display text-2xl text-muted-foreground">
+                    <div className="btn-aero flex h-24 w-20 shrink-0 items-center justify-center rounded-2xl font-display text-2xl font-black">
                       {c.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-display text-xl">{c.name}</h3>
+                        <h3 className="font-display text-xl font-extrabold">{c.name}</h3>
                         <p className="text-sm text-muted-foreground">{c.office} · {c.party}</p>
                       </div>
-                      <span className="font-display text-3xl text-primary">{c.pct}%</span>
+                      <span className="font-display text-4xl font-black text-primary">{c.pct}%</span>
                     </div>
-                    <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(0, c.pct)}%` }} /></div>
+                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-secondary shadow-inner"><div className="btn-aero btn-leaf h-3" style={{ width: `${Math.max(0, c.pct)}%` }} /></div>
                   </div>
                 </div>
                 <p className="mt-4 text-sm">{c.summary}</p>
-                <div className="mt-4 rounded-md bg-muted p-3 text-sm">
+                <div className="mt-4 rounded-2xl border border-aqua/40 bg-secondary/70 p-3 text-sm">
                   <b>Why this match:</b>{" "}
                   {c.agree.length ? <>You agree on {c.agree.join(", ")}.</> : "Few areas of close agreement."}{" "}
                   {c.differ.length > 0 && <>You differ most on {c.differ.join(", ")}.</>}
@@ -225,7 +225,7 @@ function Index() {
                 <CandidateChat name={c.name} office={c.office} party={c.party} matchPct={c.pct} agree={c.agree} differ={c.differ} />
               </article>
             ))}
-            <button onClick={() => setStep("quiz")} className="rounded-md border px-4 py-2">Retake</button>
+            <button onClick={() => setStep("quiz")} className="chip-aero px-5 py-2 font-bold">Retake</button>
           </div>
         )}
       </main>
@@ -236,7 +236,7 @@ function Index() {
 function List({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-accent">{title}</h4>
+      <h4 className="text-xs font-extrabold uppercase tracking-wider text-primary">{title}</h4>
       <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
         {items.map((x) => <li key={x}>{x}</li>)}
       </ul>
