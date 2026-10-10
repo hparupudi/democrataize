@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { GripVertical, ChevronUp, ChevronDown, ListOrdered, ArrowRight, ArrowLeft } from "lucide-react";
 import { ISSUES } from "@/lib/issues";
 import { recommendRanking } from "@/lib/candidates.functions";
@@ -21,12 +21,47 @@ export function RankIssues(props: {
   const [error, setError] = useState("");
   const [explanation, setExplanation] = useState("");
 
+  // FLIP animation: remember positions before a reorder, then slide items from old to new spot.
+  const els = useRef(new Map<string, HTMLLIElement>());
+  const prevRects = useRef<Map<string, DOMRect> | null>(null);
+  const [settled, setSettled] = useState<string | null>(null);
+
+  const reorder = (next: string[]) => {
+    prevRects.current = new Map([...els.current].map(([id, el]) => [id, el.getBoundingClientRect()]));
+    setOrder(next);
+  };
+
+  useLayoutEffect(() => {
+    const prev = prevRects.current;
+    if (!prev) return;
+    prevRects.current = null;
+    els.current.forEach((el, id) => {
+      const before = prev.get(id);
+      if (!before) return;
+      const dy = before.top - el.getBoundingClientRect().top;
+      if (!dy) return;
+      el.animate(
+        [{ transform: `translateY(${dy}px)` }, { transform: "translateY(0)" }],
+        { duration: 380, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      );
+    });
+  }, [order]);
+
   const move = (from: number, to: number) => {
     if (to < 0 || to >= order.length || from === to) return;
     const next = [...order];
     const [x] = next.splice(from, 1);
     next.splice(to, 0, x as string);
-    setOrder(next);
+    reorder(next);
+  };
+
+  const finishDrag = () => {
+    if (dragId) {
+      setSettled(dragId);
+      setTimeout(() => setSettled(null), 500);
+    }
+    setDragId(null);
+    setOverId(null);
   };
 
   async function recommend(e: React.FormEvent) {
@@ -41,7 +76,7 @@ export function RankIssues(props: {
         return { id: i.id, stance: stance.slice(0, 600) };
       });
       const r = await recommendRanking({ data: { prompt: prompt.trim(), positions } });
-      setOrder(r.order);
+      reorder(r.order);
       setExplanation(r.explanation);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't get a recommendation. Try again.");
@@ -61,21 +96,41 @@ export function RankIssues(props: {
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <ol className="space-y-2.5">
           {order.map((id, idx) => {
+            void overId;
             const issue = ISSUES.find((i) => i.id === id)!;
             const tier = idx < 3 ? "High" : idx < 6 ? "Medium" : "Low";
             return (
               <li
                 key={id}
+                ref={(el) => { if (el) els.current.set(id, el); else els.current.delete(id); }}
                 draggable
-                onDragStart={(e) => { setDragId(id); e.dataTransfer.effectAllowed = "move"; }}
-                onDragOver={(e) => { e.preventDefault(); setOverId(id); }}
-                onDragLeave={() => setOverId((o) => (o === id ? null : o))}
-                onDrop={(e) => { e.preventDefault(); if (dragId) move(order.indexOf(dragId), idx); setDragId(null); setOverId(null); }}
-                onDragEnd={() => { setDragId(null); setOverId(null); }}
-                className={`card-civic group flex cursor-grab items-center gap-3 px-3 py-3 active:cursor-grabbing ${dragId === id ? "opacity-40" : ""} ${overId === id && dragId !== id ? "border-accent ring-2 ring-accent-soft" : ""}`}
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", id);
+                  // let the browser snapshot the card before we restyle it as a placeholder
+                  requestAnimationFrame(() => setDragId(id));
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (!dragId || dragId === id) return;
+                  const from = order.indexOf(dragId);
+                  const r = e.currentTarget.getBoundingClientRect();
+                  const mid = r.top + r.height / 2;
+                  // only swap once the pointer crosses the target's midpoint — prevents jitter
+                  if ((from < idx && e.clientY > mid) || (from > idx && e.clientY < mid)) move(from, idx);
+                  setOverId(id);
+                }}
+                onDrop={(e) => { e.preventDefault(); finishDrag(); }}
+                onDragEnd={finishDrag}
+                className={`group relative flex cursor-grab items-center gap-3 rounded-[calc(var(--radius)+4px)] border px-3 py-3 transition-[background-color,border-color,box-shadow,opacity] duration-200 active:cursor-grabbing ${
+                  dragId === id
+                    ? "border-dashed border-primary-soft bg-secondary/70 shadow-none [&>*]:opacity-30"
+                    : `bg-card shadow-card hover:border-primary-soft hover:shadow-lift ${settled === id ? "animate-settle border-accent" : ""}`
+                }`}
               >
                 <GripVertical className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-lg ${idx < 3 ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>{idx + 1}</span>
+                <span key={`${id}-${idx}`} className={`flex h-9 w-9 shrink-0 animate-pop items-center justify-center rounded-full font-display text-lg transition-colors duration-300 ${idx < 3 ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>{idx + 1}</span>
                 <span className="flex-1 font-semibold text-card-foreground">{issue.title}</span>
                 <span className={`hidden rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider sm:inline ${tier === "High" ? "bg-accent-soft text-accent" : tier === "Medium" ? "bg-secondary text-primary" : "bg-muted text-muted-foreground"}`}>{tier}</span>
                 <span className="flex flex-col">
