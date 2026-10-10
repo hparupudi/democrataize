@@ -16,6 +16,7 @@ export type CandidateResult = {
   plans: string[];
   getInvolved: string[];
   website: string | null;
+  sources: string[];
   wikipediaUrl: string | null;
   image: string | null;
   scores: Record<string, number>;
@@ -38,4 +39,18 @@ export const askAboutIssue = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { runAsk } = await import("./candidates.server");
     return runAsk(data);
+  });
+
+const CandAskInput = z.object({
+  candidate: z.object({ name: z.string().max(120), office: z.string().max(200), party: z.string().max(80), matchPct: z.number() }),
+  agree: z.array(z.string().max(60)).max(9),
+  differ: z.array(z.string().max(60)).max(9),
+  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) })).min(1).max(20),
+});
+
+export const askAboutCandidate = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => CandAskInput.parse(d))
+  .handler(async ({ data }) => {
+    const { runCandidateAsk } = await import("./candidates.server");
+    return runCandidateAsk(data);
   });
