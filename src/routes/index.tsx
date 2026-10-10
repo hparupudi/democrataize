@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ISSUES, matchPercent } from "@/lib/issues";
 import { IssueHelperButton, IssueHelperPanel } from "@/components/IssueHelper";
-import aeroBg from "@/assets/aero-bg.jpg";
-import { Globe2, MapPin, Leaf, Vote } from "lucide-react";
 import { CandidateChat } from "@/components/CandidateChat";
 import { findCandidates, type CandidateResult } from "@/lib/candidates.functions";
 
@@ -78,32 +76,18 @@ function Index() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <img src={aeroBg} alt="" width={1920} height={1088} className="fixed inset-0 -z-20 h-full w-full object-cover" />
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-transparent via-background/30 to-background/70" />
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        {[8, 22, 37, 55, 68, 81, 93].map((l, i) => (
-          <span key={l} className="bubble" style={{ left: `${l}%`, bottom: "-60px", width: 18 + (i % 3) * 16, height: 18 + (i % 3) * 16, animationDuration: `${14 + i * 3}s`, animationDelay: `${i * 2.3}s` }} />
-        ))}
-      </div>
-      <header className="mx-auto max-w-3xl px-5 pt-8">
-        <nav className="glass flex items-center justify-between px-5 py-3">
-          <div className="flex items-center gap-2">
-            <span className="btn-aero flex h-9 w-9 items-center justify-center"><Globe2 className="relative h-5 w-5" /></span>
-            <span className="font-display text-xl font-black text-foreground">Democratize</span>
-          </div>
-          <span className="hidden items-center gap-1 text-xs font-semibold text-muted-foreground sm:flex"><Leaf className="h-4 w-4 text-leaf" /> Nonpartisan · Community-powered</span>
-        </nav>
-        <div className="rise-in mt-10 text-center">
-          <p className="inline-flex items-center gap-1 rounded-full bg-card px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-primary shadow-sm"><Vote className="h-4 w-4" /> Your ballot, clearly</p>
-          <h1 className="mt-4 font-display text-5xl font-black tracking-tight text-primary-foreground drop-shadow-[0_2px_8px_oklch(0.45_0.12_240/0.6)] sm:text-6xl">The future of voting<br />is crystal clear.</h1>
-          <p className="mx-auto mt-3 max-w-md font-semibold text-primary-foreground drop-shadow-[0_1px_4px_oklch(0.45_0.12_240/0.7)]">Rate the issues, share your address, and meet the candidates who match you.</p>
-          <ol className="mt-6 flex flex-wrap justify-center gap-2 text-sm font-bold">
+    <div className="min-h-screen bg-background">
+      <header className="border-b-4 border-primary">
+        <div className="mx-auto max-w-3xl px-5 py-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Ballot guide</p>
+          <h1 className="font-display text-5xl text-foreground">Democratize</h1>
+          <p className="mt-2 text-muted-foreground">Rate the issues, enter your address, see who matches you.</p>
+          <ol className="mt-6 flex flex-wrap gap-2 text-sm">
             {["Issues", "Address", "Matches"].map((s, i) => {
               const active = ["quiz", "address", "results"].indexOf(step) >= i;
               return (
-                <li key={s} className={`px-4 py-1.5 ${active ? "btn-aero" : "chip-aero text-muted-foreground"}`}>
-                  <span className="relative">{i + 1}. {s}</span>
+                <li key={s} className={`rounded-full px-3 py-1 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                  {i + 1}. {s}
                 </li>
               );
             })}
@@ -111,24 +95,24 @@ function Index() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-5 py-10 pb-24">
+      <main className="mx-auto max-w-3xl px-5 py-10">
         {step === "quiz" && (
           <div className="space-y-8">
             {ISSUES.map((issue, idx) => (
-              <section key={issue.id} className="glass rise-in p-6" style={{ animationDelay: `${idx * 60}ms` }}>
-                <h2 className="flex items-center gap-3 font-display text-2xl font-extrabold text-card-foreground"><span className="btn-aero flex h-9 w-9 shrink-0 items-center justify-center text-base"><span className="relative">{idx + 1}</span></span>{issue.title}</h2>
+              <section key={issue.id} className="rounded-lg border bg-card p-6">
+                <h2 className="font-display text-2xl text-card-foreground">{idx + 1}. {issue.title}</h2>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <p className="rounded-2xl border border-aqua/40 bg-secondary/70 p-3 text-sm"><b>A:</b> {issue.a}</p>
-                  <p className="rounded-2xl border border-leaf/40 bg-secondary/70 p-3 text-sm"><b>B:</b> {issue.b}</p>
+                  <p className="rounded-md border-l-4 border-primary bg-muted p-3 text-sm"><b>A:</b> {issue.a}</p>
+                  <p className="rounded-md border-l-4 border-accent bg-muted p-3 text-sm"><b>B:</b> {issue.b}</p>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
                   {[...SCALE, { v: OTHER, l: "Other…" }].map((s) => (
                     <button
                       key={s.v}
                       onClick={() => setAnswers({ ...answers, [issue.id]: s.v })}
-                      className={`px-1 py-2 text-xs font-bold ${answers[issue.id] === s.v ? "btn-aero" : "chip-aero"}`}
+                      className={`rounded-md border px-1 py-2 text-xs font-medium transition-colors ${answers[issue.id] === s.v ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
                     >
-                      <span className="relative">{s.l}</span>
+                      {s.l}
                     </button>
                   ))}
                 </div>
@@ -139,7 +123,7 @@ function Index() {
                     maxLength={500}
                     rows={3}
                     placeholder="Neither fits? Describe your own position in a sentence or two — AI will place it on the same scale."
-                    className="field-aero mt-3 w-full px-3 py-2 text-sm"
+                    className="mt-3 w-full rounded-md border bg-background px-3 py-2 text-sm"
                   />
                 )}
                 <label className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
@@ -151,23 +135,22 @@ function Index() {
                 {helpOpen[issue.id] && <IssueHelperPanel issueId={issue.id} onPick={(v) => setAnswers({ ...answers, [issue.id]: v })} />}
               </section>
             ))}
-            <button disabled={!done} onClick={() => setStep("address")} className="btn-aero btn-leaf w-full py-3.5 text-lg font-extrabold">
-              <span className="relative">{done ? "Continue" : `Answer all issues (${Object.keys(answers).length}/${ISSUES.length})`}</span>
+            <button disabled={!done} onClick={() => setStep("address")} className="w-full rounded-md bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-40">
+              {done ? "Continue" : `Answer all issues (${Object.keys(answers).length}/${ISSUES.length})`}
             </button>
           </div>
         )}
 
         {step === "address" && (
-          <form onSubmit={submit} className="glass rise-in p-8">
-            <span className="float btn-aero mb-4 flex h-14 w-14 items-center justify-center"><MapPin className="relative h-7 w-7" /></span>
-            <h2 className="font-display text-3xl font-extrabold">Where do you vote?</h2>
+          <form onSubmit={submit} className="rounded-lg border bg-card p-6">
+            <h2 className="font-display text-2xl">Your residential address</h2>
             <p className="mt-1 text-sm text-muted-foreground">Used to find your local, state, and federal races.</p>
-            <input required value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St, City, State ZIP" className="field-aero mt-4 w-full px-4 py-3" />
+            <input required value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St, City, State ZIP" className="mt-4 w-full rounded-md border bg-background px-3 py-2" />
             {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
             <div className="mt-4 flex gap-2">
-              <button type="button" onClick={() => setStep("quiz")} className="chip-aero px-5 py-2 font-bold">Back</button>
-              <button disabled={loading} className="btn-aero flex-1 py-2.5 font-extrabold">
-                <span className="relative">{loading ? "Researching your candidates… (up to a minute)" : "Find my candidates"}</span>
+              <button type="button" onClick={() => setStep("quiz")} className="rounded-md border px-4 py-2">Back</button>
+              <button disabled={loading} className="flex-1 rounded-md bg-primary py-2 font-semibold text-primary-foreground disabled:opacity-60">
+                {loading ? "Researching your candidates… (up to a minute)" : "Find my candidates"}
               </button>
             </div>
           </form>
@@ -175,32 +158,32 @@ function Index() {
 
         {step === "results" && (
           <div className="space-y-6">
-            <p className="glass px-5 py-3 text-sm text-muted-foreground">
-              <MapPin className="mr-1 inline h-4 w-4 text-primary" />Races for <b className="text-foreground">{location || address}</b>. Researched by AI using primary sources only (voting records, official sites) — double-check with your official sample ballot.
+            <p className="text-sm text-muted-foreground">
+              Races for <b className="text-foreground">{location || address}</b>. Researched by AI using primary sources only (voting records, official sites) — double-check with your official sample ballot.
             </p>
-            {results.map((c, idx) => (
-              <article key={c.name} className="glass rise-in p-6" style={{ animationDelay: `${idx * 80}ms` }}>
+            {results.map((c) => (
+              <article key={c.name} className="rounded-lg border bg-card p-5">
                 <div className="flex gap-4">
                   {c.image ? (
-                    <img src={c.image} alt={c.name} className="h-24 w-20 shrink-0 rounded-2xl border-2 border-card object-cover shadow-md" />
+                    <img src={c.image} alt={c.name} className="h-24 w-20 shrink-0 rounded-md object-cover" />
                   ) : (
-                    <div className="btn-aero flex h-24 w-20 shrink-0 items-center justify-center rounded-2xl font-display text-2xl font-black">
+                    <div className="flex h-24 w-20 shrink-0 items-center justify-center rounded-md bg-muted font-display text-2xl text-muted-foreground">
                       {c.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-display text-xl font-extrabold">{c.name}</h3>
+                        <h3 className="font-display text-xl">{c.name}</h3>
                         <p className="text-sm text-muted-foreground">{c.office} · {c.party}</p>
                       </div>
-                      <span className="font-display text-4xl font-black text-primary">{c.pct}%</span>
+                      <span className="font-display text-3xl text-primary">{c.pct}%</span>
                     </div>
-                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-secondary shadow-inner"><div className="btn-aero btn-leaf h-3" style={{ width: `${Math.max(0, c.pct)}%` }} /></div>
+                    <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(0, c.pct)}%` }} /></div>
                   </div>
                 </div>
                 <p className="mt-4 text-sm">{c.summary}</p>
-                <div className="mt-4 rounded-2xl border border-aqua/40 bg-secondary/70 p-3 text-sm">
+                <div className="mt-4 rounded-md bg-muted p-3 text-sm">
                   <b>Why this match:</b>{" "}
                   {c.agree.length ? <>You agree on {c.agree.join(", ")}.</> : "Few areas of close agreement."}{" "}
                   {c.differ.length > 0 && <>You differ most on {c.differ.join(", ")}.</>}
@@ -225,7 +208,7 @@ function Index() {
                 <CandidateChat name={c.name} office={c.office} party={c.party} matchPct={c.pct} agree={c.agree} differ={c.differ} />
               </article>
             ))}
-            <button onClick={() => setStep("quiz")} className="chip-aero px-5 py-2 font-bold">Retake</button>
+            <button onClick={() => setStep("quiz")} className="rounded-md border px-4 py-2">Retake</button>
           </div>
         )}
       </main>
@@ -236,7 +219,7 @@ function Index() {
 function List({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <h4 className="text-xs font-extrabold uppercase tracking-wider text-primary">{title}</h4>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-accent">{title}</h4>
       <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
         {items.map((x) => <li key={x}>{x}</li>)}
       </ul>
