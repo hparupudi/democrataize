@@ -27,6 +27,9 @@ export type CandidateView = {
   photoUrl: string | null;
   email: string | null;
   phone: string | null;
+  isIncumbent: boolean | null;
+  incumbencyStatus: string | null;
+  incumbencySource: string | null;
   campaignWebsite: string | null;
   socialLinks: { platform: string; url: string }[];
   wikipediaUrl: string | null;

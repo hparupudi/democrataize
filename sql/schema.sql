@@ -34,10 +34,20 @@ CREATE TABLE IF NOT EXISTS candidates (
     geocoder_lon DOUBLE PRECISION,
     geocoder_districts JSONB,
     fec_candidate_id TEXT,
+    is_incumbent BOOLEAN,
+    incumbency_status TEXT,
+    incumbency_source TEXT,
+    incumbency_detail TEXT,
     source_row JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Safe upgrades for databases created before incumbency columns existed.
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS is_incumbent BOOLEAN;
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS incumbency_status TEXT;
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS incumbency_source TEXT;
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS incumbency_detail TEXT;
 
 CREATE TABLE IF NOT EXISTS candidate_research (
     candidate_id TEXT PRIMARY KEY REFERENCES candidates (candidate_id) ON DELETE CASCADE,

@@ -68,9 +68,15 @@ export function CandidatePanel({
             </div>
           )}
           <div>
-            <h4>{candidate.nameOnBallot}</h4>
+            <h4>
+              {candidate.nameOnBallot}
+              {candidate.isIncumbent ? " (Incumbent)" : ""}
+            </h4>
             <p>
               {candidate.partyName} · {candidate.districtLabel || "Statewide"}
+              {candidate.incumbencyStatus && !candidate.isIncumbent
+                ? ` · ${candidate.incumbencyStatus.replaceAll("_", " ")}`
+                : ""}
             </p>
           </div>
         </div>

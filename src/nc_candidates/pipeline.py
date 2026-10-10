@@ -12,7 +12,7 @@ from nc_candidates.db.tigerdata import TigerDataStore
 from nc_candidates.gemini.evaluate import GeminiEvaluator
 from nc_candidates.gemini.research import GeminiResearcher
 from nc_candidates.sources.census_geocoder import enrich_with_geocoder
-from nc_candidates.sources.fec import enrich_federal_candidates
+from nc_candidates.sources.incumbency import resolve_incumbency
 from nc_candidates.sources.ncsbe import fetch_ncsbe_candidates
 from nc_candidates.sources.tiger_boundaries import fetch_district_boundaries
 
@@ -78,15 +78,21 @@ def run(argv: Sequence[str] | None = None) -> int:
 
     geocoder = enrich_with_geocoder(candidates, session=session)
     boundaries = fetch_district_boundaries(candidates, session=session)
-    fec_ids = enrich_federal_candidates(
-        candidates, api_key=settings.fec_api_key, session=session
+    fec_ids, incumbency = resolve_incumbency(
+        candidates,
+        fec_api_key=settings.fec_api_key,
+        gemini_api_key=settings.gemini_api_key,
+        gemini_model=settings.gemini_model,
+        session=session,
     )
 
     store.upsert_districts(boundaries)
 
     # Insert candidates before research/scores so foreign keys succeed.
     photo_urls: dict[str, str | None] = {c.candidate_id: None for c in candidates}
-    store.upsert_candidates(candidates, geocoder, fec_ids, photo_urls)
+    store.upsert_candidates(
+        candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
+    )
 
     researcher = GeminiResearcher(settings.gemini_api_key, settings.gemini_model)
     evaluator = GeminiEvaluator(settings.gemini_api_key, settings.gemini_model)
@@ -105,7 +111,9 @@ def run(argv: Sequence[str] | None = None) -> int:
         store.upsert_issue_scores(candidate.candidate_id, scores)
 
     # Persist photo URLs discovered during Gemini research.
-    store.upsert_candidates(candidates, geocoder, fec_ids, photo_urls)
+    store.upsert_candidates(
+        candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
+    )
     logger.info("Pipeline finished successfully for %d candidates", len(candidates))
     return 0
 

@@ -23,6 +23,9 @@ type CandidateRow = {
   photo_url: string | null;
   email: string | null;
   phone: string | null;
+  is_incumbent: boolean | null;
+  incumbency_status: string | null;
+  incumbency_source: string | null;
   research_photo: string | null;
   campaign_platform: Record<string, unknown> | null;
   social_media_posts: { platform?: string; url?: string }[] | null;
@@ -82,6 +85,9 @@ export async function POST(request: Request) {
         c.photo_url,
         c.email,
         c.phone,
+        c.is_incumbent,
+        c.incumbency_status,
+        c.incumbency_source,
         r.photo_url AS research_photo,
         r.campaign_platform,
         r.social_media_posts,
@@ -185,6 +191,9 @@ export async function POST(request: Request) {
         photoUrl: c.research_photo || c.photo_url,
         email: c.email,
         phone: c.phone,
+        isIncumbent: c.is_incumbent,
+        incumbencyStatus: c.incumbency_status,
+        incumbencySource: c.incumbency_source,
         campaignWebsite: website,
         socialLinks,
         wikipediaUrl: c.wikipedia?.url || null,

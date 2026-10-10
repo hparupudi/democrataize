@@ -10,6 +10,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from nc_candidates.config import SCHEMA_PATH
+from nc_candidates.sources.incumbency import IncumbencyInfo
 from nc_candidates.sources.ncsbe import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -85,19 +86,23 @@ class TigerDataStore:
         geocoder: dict[str, dict[str, Any]],
         fec_ids: dict[str, str],
         photo_urls: dict[str, str | None],
+        incumbency: dict[str, IncumbencyInfo] | None = None,
     ) -> None:
+        incumbency = incumbency or {}
         sql = """
             INSERT INTO candidates (
                 candidate_id, full_name, name_on_ballot, party_code, party_name,
                 office_type, contest_name, district_key, district_label, election_date,
                 photo_url, street_address, city, state, zip_code, email, phone,
                 geocoder_lat, geocoder_lon, geocoder_districts, fec_candidate_id,
+                is_incumbent, incumbency_status, incumbency_source, incumbency_detail,
                 source_row, created_at, updated_at
             ) VALUES (
                 %(candidate_id)s, %(full_name)s, %(name_on_ballot)s, %(party_code)s, %(party_name)s,
                 %(office_type)s, %(contest_name)s, %(district_key)s, %(district_label)s, %(election_date)s,
                 %(photo_url)s, %(street_address)s, %(city)s, %(state)s, %(zip_code)s, %(email)s, %(phone)s,
                 %(geocoder_lat)s, %(geocoder_lon)s, %(geocoder_districts)s::jsonb, %(fec_candidate_id)s,
+                %(is_incumbent)s, %(incumbency_status)s, %(incumbency_source)s, %(incumbency_detail)s,
                 %(source_row)s::jsonb, NOW(), NOW()
             )
             ON CONFLICT (candidate_id) DO UPDATE SET
@@ -121,6 +126,10 @@ class TigerDataStore:
                 geocoder_lon = EXCLUDED.geocoder_lon,
                 geocoder_districts = EXCLUDED.geocoder_districts,
                 fec_candidate_id = EXCLUDED.fec_candidate_id,
+                is_incumbent = EXCLUDED.is_incumbent,
+                incumbency_status = EXCLUDED.incumbency_status,
+                incumbency_source = EXCLUDED.incumbency_source,
+                incumbency_detail = EXCLUDED.incumbency_detail,
                 source_row = EXCLUDED.source_row,
                 updated_at = NOW()
         """
@@ -128,6 +137,7 @@ class TigerDataStore:
             with conn.cursor() as cur:
                 for candidate in candidates:
                     geo = geocoder.get(candidate.candidate_id) or {}
+                    inc = incumbency.get(candidate.candidate_id)
                     election_date = _parse_date(candidate.election_date)
                     cur.execute(
                         sql,
@@ -153,6 +163,10 @@ class TigerDataStore:
                             "geocoder_lon": geo.get("lon"),
                             "geocoder_districts": json.dumps(geo.get("geographies") or {}),
                             "fec_candidate_id": fec_ids.get(candidate.candidate_id),
+                            "is_incumbent": None if inc is None else inc.is_incumbent,
+                            "incumbency_status": None if inc is None else inc.status,
+                            "incumbency_source": None if inc is None else inc.source,
+                            "incumbency_detail": None if inc is None else inc.detail,
                             "source_row": json.dumps(candidate.source_row),
                         },
                     )
