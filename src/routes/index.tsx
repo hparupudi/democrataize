@@ -5,7 +5,7 @@ import { IssueHelperButton, IssueHelperPanel } from "@/components/IssueHelper";
 import { RankIssues } from "@/components/RankIssues";
 import { CandidateChat } from "@/components/CandidateChat";
 import { LogoMark, MatchRing, IssueCompare, DistrictMap, HeroMap } from "@/components/civic";
-import { MapPin, ArrowRight, ArrowLeft, ShieldCheck, Globe, BookOpen, RotateCcw } from "lucide-react";
+import { Star, MapPin, ArrowRight, ArrowLeft, ShieldCheck, Globe, BookOpen, RotateCcw } from "lucide-react";
 import { findCandidates, type CandidateResult } from "@/lib/candidates.functions";
 
 export const Route = createFileRoute("/")({
@@ -89,11 +89,12 @@ function Index() {
 
   return (
     <div className="flex min-h-screen flex-col map-texture">
-      <nav className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
+      <nav className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur-md">
+        <div className="stripe-band h-1" />
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
           <div className="flex items-center gap-2.5">
             <LogoMark />
-            <span className="font-display text-xl text-primary">Democratize</span>
+            <span className="font-display text-xl font-bold text-primary">Democratize</span>
           </div>
           <ol className="flex items-center gap-1 text-xs font-semibold sm:gap-2">
             {["Issues", "Priorities", "Address", "Matches"].map((s, i) => (
@@ -113,11 +114,11 @@ function Index() {
         <header className="hero-surface">
           <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-14 md:grid-cols-[1.15fr_1fr] md:py-20">
             <div className="animate-fade-up">
-              <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold glass-chip">
-                <span className="h-1.5 w-1.5 rounded-full bg-highlight" /> Nonpartisan ballot guide
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-highlight">
+                <Star className="h-3.5 w-3.5 fill-highlight" /> A nonpartisan guide for every voter
               </span>
               <h1 className="mt-5 font-display text-4xl leading-[1.05] sm:text-5xl md:text-6xl">
-                Understand your <span className="text-highlight">local</span> civic landscape.
+                Know your ballot. <em className="font-normal italic text-highlight">Know</em> who represents you.
               </h1>
               <p className="mt-5 max-w-md text-base opacity-80">
                 Share where you stand on nine issues. We map your address to the races on your ballot and show how closely each candidate's record matches yours.
@@ -129,6 +130,7 @@ function Index() {
             </div>
             <div className="animate-fade-up [animation-delay:150ms]"><HeroMap /></div>
           </div>
+          <div className="stripe-band h-1.5 opacity-90" />
         </header>
       )}
 
@@ -243,7 +245,7 @@ function Index() {
           <div className="space-y-6">
             <div className="card-civic animate-fade-up grid overflow-hidden sm:grid-cols-[1fr_1.1fr]">
               <div className="p-6">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Your ballot</span>
+                <span className="eyebrow">Your ballot</span>
                 <h2 className="mt-1 font-display text-2xl text-primary">{location || address}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{results.length} candidates ranked by how closely their documented record matches your positions.</p>
                 <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-xs text-muted-foreground">
@@ -309,9 +311,10 @@ function Index() {
         )}
       </main>
 
-      <footer className="border-t bg-card/70">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-6 text-xs text-muted-foreground">
-          <span className="flex items-center gap-2"><LogoMark /> Nonpartisan. Not affiliated with any campaign or party.</span>
+      <footer className="bg-primary text-primary-foreground">
+        <div className="stripe-band h-1" />
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-xs opacity-90">
+          <span className="flex items-center gap-2"><Star className="h-4 w-4 fill-highlight text-highlight" /> <b className="font-display text-base">Democratize</b> — Nonpartisan. Not affiliated with any campaign or party.</span>
           <span>Information from primary sources only.</span>
         </div>
       </footer>
@@ -322,7 +325,7 @@ function Index() {
 function List({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <h4 className="text-[11px] font-bold uppercase tracking-wider text-accent">{title}</h4>
+      <h4 className="eyebrow">{title}</h4>
       <ul className="mt-2 space-y-1.5 text-sm">
         {items.map((x) => (
           <li key={x} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-soft" />{x}</li>

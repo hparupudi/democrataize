@@ -25,7 +25,7 @@ export function RankIssues(props: {
     if (to < 0 || to >= order.length || from === to) return;
     const next = [...order];
     const [x] = next.splice(from, 1);
-    next.splice(to, 0, x);
+    next.splice(to, 0, x as string);
     setOrder(next);
   };
 
@@ -37,7 +37,7 @@ export function RankIssues(props: {
     try {
       const positions = ISSUES.map((i) => {
         const v = props.answers[i.id];
-        const stance = v === 99 ? `Own view: ${props.others[i.id] ?? ""}` : `${STANCE[v] ?? "Unanswered"} (A: ${i.a} / B: ${i.b})`;
+        const stance = v === 99 ? `Own view: ${props.others[i.id] ?? ""}` : `${(v !== undefined && STANCE[v]) || "Unanswered"} (A: ${i.a} / B: ${i.b})`;
         return { id: i.id, stance: stance.slice(0, 600) };
       });
       const r = await recommendRanking({ data: { prompt: prompt.trim(), positions } });
