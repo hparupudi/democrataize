@@ -241,3 +241,15 @@
 @utility rule-double {
   border-top: 3px double var(--border);
 }
+
+@keyframes pop {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes settle {
+  0% { transform: scale(1.02); box-shadow: var(--shadow-lift); }
+  100% { transform: scale(1); }
+}
+@utility animate-pop { animation: pop 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+@utility animate-settle { animation: settle 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
