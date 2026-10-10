@@ -85,7 +85,7 @@ function Index() {
   const go = (s: typeof step) => { setStep(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (
-    <div className="min-h-screen map-texture">
+    <div className="flex min-h-screen flex-col map-texture">
       <nav className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
           <div className="flex items-center gap-2.5">
@@ -129,7 +129,7 @@ function Index() {
         </header>
       )}
 
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         {step === "quiz" && (
           <div className="space-y-6">
             <div className="sticky top-[61px] z-20 -mx-1 rounded-2xl border bg-card/90 px-4 py-3 shadow-card backdrop-blur-md">
