@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ISSUES, matchPercent } from "@/lib/issues";
+import { IssueHelperButton, IssueHelperPanel } from "@/components/IssueHelper";
 import { findCandidates, type CandidateResult } from "@/lib/candidates.functions";
 
 export const Route = createFileRoute("/")({
@@ -34,6 +35,7 @@ function Index() {
   const [others, setOthers] = useState<Record<string, string>>({});
   const [weights, setWeights] = useState<Record<string, number>>({});
   const [address, setAddress] = useState("");
+  const [helpOpen, setHelpOpen] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [location, setLocation] = useState("");
@@ -96,7 +98,8 @@ function Index() {
         {step === "quiz" && (
           <div className="space-y-8">
             {ISSUES.map((issue, idx) => (
-              <section key={issue.id} className="rounded-lg border bg-card p-6">
+              <section key={issue.id} className="relative rounded-lg border bg-card p-6 pr-8">
+                <IssueHelperButton open={!!helpOpen[issue.id]} onClick={() => setHelpOpen({ ...helpOpen, [issue.id]: !helpOpen[issue.id] })} />
                 <h2 className="font-display text-2xl text-card-foreground">{idx + 1}. {issue.title}</h2>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <p className="rounded-md border-l-4 border-primary bg-muted p-3 text-sm"><b>A:</b> {issue.a}</p>
@@ -123,6 +126,7 @@ function Index() {
                     className="mt-3 w-full rounded-md border bg-background px-3 py-2 text-sm"
                   />
                 )}
+                {helpOpen[issue.id] && <IssueHelperPanel issueId={issue.id} onPick={(v) => setAnswers({ ...answers, [issue.id]: v })} />}
                 <label className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
                   How important?
                   <input type="range" min={1} max={3} value={weights[issue.id] ?? 2} onChange={(e) => setWeights({ ...weights, [issue.id]: +e.target.value })} className="accent-primary" />
