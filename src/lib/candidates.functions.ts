@@ -54,3 +54,15 @@ export const askAboutCandidate = createServerFn({ method: "POST" })
     const { runCandidateAsk } = await import("./candidates.server");
     return runCandidateAsk(data);
   });
+
+const RankInput = z.object({
+  prompt: z.string().min(1).max(1000),
+  positions: z.array(z.object({ id: z.string().max(40), stance: z.string().max(600) })).max(9),
+});
+
+export const recommendRanking = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => RankInput.parse(d))
+  .handler(async ({ data }) => {
+    const { runRank } = await import("./candidates.server");
+    return runRank(data);
+  });

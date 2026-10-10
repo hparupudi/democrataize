@@ -173,3 +173,34 @@ Explain the question or trade-offs in simple terms. If the voter has shared thei
   const s = out.suggestedScore;
   return { explanation: out.explanation, suggestedScore: s === null ? null : Math.max(-2, Math.min(2, Math.round(s))) };
 }
+
+const RankSchema = z.object({ order: z.array(z.string()), explanation: z.string() });
+
+export async function runRank(data: { prompt: string; positions: { id: string; stance: string }[] }) {
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) throw new Error("AI is not configured");
+  const runId = createLovableAiGatewayRunIdFetch();
+  const provider = createOpenAI({
+    baseURL: "https://ai.gateway.lovable.dev/v1",
+    apiKey,
+    headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
+    fetch: runId.fetch,
+  });
+  const ids = ISSUES.map((i) => i.id);
+  const result = streamText({
+    model: provider.responses("openai/gpt-6-astra"),
+    instructions: `You help a voter rank 9 policy issues by personal importance. Be neutral; never push a political view. Use the voter's own words about their life and priorities.
+Issue ids: ${ISSUES.map((i) => `${i.id} (${i.title})`).join(", ")}.
+Return "order" containing ALL 9 ids exactly once, most important first, and a short plain-language "explanation" (under 90 words, no markdown) of why the top few come first.`,
+    prompt: `Voter's survey positions:\n${data.positions.map((p) => `- ${p.id}: ${p.stance}`).join("\n")}\n\nWhat the voter says about their priorities: "${data.prompt}"`,
+    output: Output.object({ schema: RankSchema }),
+    providerOptions: {
+      openai: { store: false, forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", include: ["reasoning.encrypted_content"] },
+    },
+  });
+  const out = await result.output;
+  const seen = new Set<string>();
+  const order = out.order.filter((id) => ids.includes(id) && !seen.has(id) && seen.add(id));
+  for (const id of ids) if (!seen.has(id)) order.push(id);
+  return { order, explanation: out.explanation };
+}
