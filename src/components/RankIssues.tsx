@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GripVertical, ChevronUp, ChevronDown, Sparkle, ArrowRight, ArrowLeft } from "lucide-react";
+import { GripVertical, ChevronUp, ChevronDown, ListOrdered, ArrowRight, ArrowLeft } from "lucide-react";
 import { ISSUES } from "@/lib/issues";
 import { recommendRanking } from "@/lib/candidates.functions";
 
@@ -91,7 +91,7 @@ export function RankIssues(props: {
           <form onSubmit={recommend} className="card-civic overflow-hidden">
             <div className="stripe-band h-1.5" />
             <div className="p-5">
-              <h3 className="flex items-center gap-2 font-display text-xl text-primary"><Sparkle className="h-4 w-4 text-accent" /> Need help ranking?</h3>
+              <h3 className="flex items-center gap-2 font-display text-xl text-primary"><ListOrdered className="h-4 w-4 text-accent" /> Need help ranking?</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">Tell us a bit about your life and what you worry about. AI will suggest an order — you can still rearrange it.</p>
               <textarea
                 value={prompt}

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ISSUES, matchPercent } from "@/lib/issues";
 import { IssueHelperButton, IssueHelperPanel } from "@/components/IssueHelper";
+import { RankIssues } from "@/components/RankIssues";
 import { CandidateChat } from "@/components/CandidateChat";
 import { LogoMark, MatchRing, IssueCompare, DistrictMap, HeroMap } from "@/components/civic";
 import { MapPin, ArrowRight, ArrowLeft, ShieldCheck, Globe, BookOpen, RotateCcw } from "lucide-react";
@@ -33,10 +34,12 @@ const OTHER = 99;
 type Result = CandidateResult & { pct: number; agree: string[]; differ: string[] };
 
 function Index() {
-  const [step, setStep] = useState<"quiz" | "address" | "results">("quiz");
+  const [step, setStep] = useState<"quiz" | "rank" | "address" | "results">("quiz");
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [others, setOthers] = useState<Record<string, string>>({});
-  const [weights, setWeights] = useState<Record<string, number>>({});
+  const [order, setOrder] = useState<string[]>(() => ISSUES.map((i) => i.id));
+  // Rank 1 → weight 3, rank 9 → weight 1
+  const weights = Object.fromEntries(order.map((id, i) => [id, 3 - (2 * i) / (order.length - 1)]));
   const [address, setAddress] = useState("");
   const [helpOpen, setHelpOpen] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
@@ -81,7 +84,7 @@ function Index() {
   }
 
   const answered = ISSUES.filter((i) => answers[i.id] !== undefined).length;
-  const stepIdx = ["quiz", "address", "results"].indexOf(step);
+  const stepIdx = ["quiz", "rank", "address", "results"].indexOf(step);
   const go = (s: typeof step) => { setStep(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (
@@ -93,13 +96,13 @@ function Index() {
             <span className="font-display text-xl text-primary">Democratize</span>
           </div>
           <ol className="flex items-center gap-1 text-xs font-semibold sm:gap-2">
-            {["Issues", "Address", "Matches"].map((s, i) => (
+            {["Issues", "Priorities", "Address", "Matches"].map((s, i) => (
               <li key={s} className="flex items-center gap-1 sm:gap-2">
                 <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors ${i === stepIdx ? "bg-primary text-primary-foreground" : i < stepIdx ? "bg-accent-soft text-accent" : "text-muted-foreground"}`}>
                   <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${i === stepIdx ? "bg-primary-foreground text-primary" : i < stepIdx ? "bg-accent text-accent-foreground" : "bg-muted"}`}>{i + 1}</span>
                   <span className="hidden sm:inline">{s}</span>
                 </span>
-                {i < 2 && <span className="h-px w-3 bg-border sm:w-6" />}
+                {i < 3 && <span className="h-px w-3 bg-border sm:w-6" />}
               </li>
             ))}
           </ol>
@@ -129,7 +132,7 @@ function Index() {
         </header>
       )}
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
+      <main className={`mx-auto w-full flex-1 px-5 py-10 ${step === "rank" ? "max-w-5xl" : "max-w-3xl"}`}>
         {step === "quiz" && (
           <div className="space-y-6">
             <div className="sticky top-[61px] z-20 -mx-1 rounded-2xl border bg-card/90 px-4 py-3 shadow-card backdrop-blur-md">
@@ -190,22 +193,21 @@ function Index() {
                     />
                   )}
 
-                  <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-                    <label className="flex items-center gap-3 text-sm text-muted-foreground">
-                      Importance
-                      <input type="range" min={1} max={3} value={weights[issue.id] ?? 2} onChange={(e) => setWeights({ ...weights, [issue.id]: +e.target.value })} className="w-24 accent-accent" />
-                      <span className="w-14 font-semibold text-primary">{["Low", "Medium", "High"][(weights[issue.id] ?? 2) - 1]}</span>
-                    </label>
+                  <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t pt-4">
                     <IssueHelperButton open={!!helpOpen[issue.id]} onClick={() => setHelpOpen({ ...helpOpen, [issue.id]: !helpOpen[issue.id] })} />
                   </div>
                   {helpOpen[issue.id] && <IssueHelperPanel issueId={issue.id} onPick={(v) => setAnswers({ ...answers, [issue.id]: v })} />}
                 </section>
               );
             })}
-            <button disabled={!done} onClick={() => go("address")} className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-semibold text-primary-foreground shadow-lift transition hover:bg-primary/90 disabled:opacity-40 disabled:shadow-none">
-              {done ? <>Continue to your address <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></> : `Answer all issues (${answered}/${ISSUES.length})`}
+            <button disabled={!done} onClick={() => go("rank")} className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-semibold text-primary-foreground shadow-lift transition hover:bg-primary/90 disabled:opacity-40 disabled:shadow-none">
+              {done ? <>Continue to rank priorities <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></> : `Answer all issues (${answered}/${ISSUES.length})`}
             </button>
           </div>
+        )}
+
+        {step === "rank" && (
+          <RankIssues order={order} setOrder={setOrder} answers={answers} others={others} onBack={() => go("quiz")} onNext={() => go("address")} />
         )}
 
         {step === "address" && (
@@ -228,7 +230,7 @@ function Index() {
                 </div>
               )}
               <div className="mt-6 flex gap-3">
-                <button type="button" onClick={() => go("quiz")} className="flex items-center gap-1.5 rounded-xl border bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:bg-muted"><ArrowLeft className="h-4 w-4" /> Back</button>
+                <button type="button" onClick={() => go("rank")} className="flex items-center gap-1.5 rounded-xl border bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:bg-muted"><ArrowLeft className="h-4 w-4" /> Back</button>
                 <button disabled={loading} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-lift transition hover:bg-primary/90 disabled:opacity-60">
                   {loading ? "Researching…" : <>Find my candidates <ArrowRight className="h-4 w-4" /></>}
                 </button>
