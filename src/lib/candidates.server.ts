@@ -54,6 +54,8 @@ export async function runAi(data: { address: string; others: { issue: string; te
   const issueText = ISSUES.map((i) => `- ${i.id} (${i.title}): -2 = strongly "${i.a}" … +2 = strongly "${i.b}"`).join("\n");
   const prompt = `Voter address: ${data.address}
 
+The "location" field must be a short label like "Baltimore, MD — Congressional District 7" (under 80 characters).
+
 Identify REAL candidates and incumbents for the most recent / upcoming elections relevant to this address: US Senate, US House district, Governor, and if known, state legislature. Include major-party candidates for each race (aim for 4-8 people). Only include real, verifiable people; never invent anyone. If unsure of the district, use statewide and federal races only.
 
 For each candidate give: exact English Wikipedia article title (or null), official campaign website (or null), a 2-sentence summary, 3 key things they have done (record), 3 things they plan to do, and 3 concrete ways to get involved (volunteer, donate, events — reference their website when known).
