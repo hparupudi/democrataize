@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ISSUES, matchPercent } from "@/lib/issues";
 import { IssueHelperButton, IssueHelperPanel } from "@/components/IssueHelper";
+import { CandidateChat } from "@/components/CandidateChat";
 import { findCandidates, type CandidateResult } from "@/lib/candidates.functions";
 
 export const Route = createFileRoute("/")({
@@ -158,7 +159,7 @@ function Index() {
         {step === "results" && (
           <div className="space-y-6">
             <p className="text-sm text-muted-foreground">
-              Races for <b className="text-foreground">{location || address}</b>. Researched by AI from public records — double-check with your official sample ballot.
+              Races for <b className="text-foreground">{location || address}</b>. Researched by AI using primary sources only (voting records, official sites) — double-check with your official sample ballot.
             </p>
             {results.map((c) => (
               <article key={c.name} className="rounded-lg border bg-card p-5">
@@ -196,6 +197,15 @@ function Index() {
                   {c.website && <a href={c.website} target="_blank" rel="noreferrer" className="font-semibold text-primary underline">Campaign site</a>}
                   {c.wikipediaUrl && <a href={c.wikipediaUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary underline">Wikipedia</a>}
                 </div>
+                {c.sources.length > 0 && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Primary sources:{" "}
+                    {c.sources.map((u, j) => (
+                      <a key={u} href={u} target="_blank" rel="noreferrer" className="mr-2 underline">[{j + 1}] {u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}</a>
+                    ))}
+                  </p>
+                )}
+                <CandidateChat name={c.name} office={c.office} party={c.party} matchPct={c.pct} agree={c.agree} differ={c.differ} />
               </article>
             ))}
             <button onClick={() => setStep("quiz")} className="rounded-md border px-4 py-2">Retake</button>
