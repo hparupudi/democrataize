@@ -57,7 +57,7 @@ export function IssueHelperPanel({ issueId, onPick }: { issueId: string; onPick:
               <p className="whitespace-pre-wrap">{m.content}</p>
               {m.suggested !== undefined && m.suggested !== null && (
                 <button type="button" onClick={() => onPick(m.suggested as number)} className="mt-2 btn-aero btn-leaf px-3 py-1.5 text-xs font-bold">
-                  Pick "{LABELS[m.suggested]}"
+                  <span className="relative">Pick "{LABELS[m.suggested]}"</span>
                 </button>
               )}
             </div>
