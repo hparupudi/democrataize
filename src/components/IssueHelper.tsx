@@ -12,9 +12,10 @@ export function IssueHelperButton({ open, onClick }: { open: boolean; onClick: (
       onClick={onClick}
       aria-label={open ? "Close help" : "Ask AI about this question"}
       title="Not sure? Ask AI"
-      className="absolute -right-4 top-1/2 -translate-y-1/2 rounded-full bg-background text-primary shadow-md transition-transform hover:scale-110"
+      className="mt-4 flex items-center gap-2 rounded-full border border-primary/30 bg-background py-1 pl-1 pr-4 text-sm font-semibold text-primary transition-colors hover:bg-muted"
     >
-      {open ? <X className="h-9 w-9 rounded-full border-2 border-primary p-1.5" /> : <CircleArrowRight className="h-9 w-9" strokeWidth={1.75} />}
+      {open ? <X className="h-7 w-7 rounded-full border-2 border-primary p-1" /> : <CircleArrowRight className="h-7 w-7" strokeWidth={1.75} />}
+      {open ? "Close help" : "Not sure? Ask AI"}
     </button>
   );
 }
