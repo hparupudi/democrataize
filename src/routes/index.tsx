@@ -54,7 +54,7 @@ function Index() {
       setResults(
         res.candidates
           .map((c) => {
-            const diffs = ISSUES.map((i) => ({ t: i.title, d: Math.abs(user[i.id] - (c.scores[i.id] ?? 0)) }));
+            const diffs = ISSUES.map((i) => ({ t: i.title, d: Math.abs((user[i.id] ?? 0) - (c.scores[i.id] ?? 0)) }));
             return {
               ...c,
               pct: matchPercent(user, weights, c.scores),
