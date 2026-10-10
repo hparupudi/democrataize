@@ -95,3 +95,39 @@ ${data.others.map((o) => `- ${o.issue}: "${o.text}"`).join("\n") || "(none)"}`;
     candidates,
   };
 }
+
+const AskSchema = z.object({
+  explanation: z.string(),
+  suggestedScore: z.number().nullable(),
+});
+
+export async function runAsk(data: { issueId: string; history: { role: "user" | "assistant"; content: string }[] }) {
+  const issue = ISSUES.find((i) => i.id === data.issueId);
+  if (!issue) throw new Error("Unknown question");
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) throw new Error("AI is not configured");
+  const runId = createLovableAiGatewayRunIdFetch();
+  const provider = createOpenAI({
+    baseURL: "https://ai.gateway.lovable.dev/v1",
+    apiKey,
+    headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
+    fetch: runId.fetch,
+  });
+  const result = streamText({
+    model: provider.responses("openai/gpt-6-astra"),
+    instructions: `You help a voter understand one survey question and figure out where they stand. Be neutral, plain-spoken, and brief (under 150 words, no markdown).
+Question: ${issue.title}
+Side A: ${issue.a}
+Side B: ${issue.b}
+Scale: -2 Strongly A, -1 Somewhat A, 0 Neutral, 1 Somewhat B, 2 Strongly B.
+Explain the question or trade-offs in simple terms. If the voter has shared their values or views, explain where that places them and why, and set suggestedScore to the best-fitting option. If you don't yet know enough, ask one short follow-up question about their values and set suggestedScore to null.`,
+    messages: data.history,
+    output: Output.object({ schema: AskSchema }),
+    providerOptions: {
+      openai: { store: false, forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", include: ["reasoning.encrypted_content"] },
+    },
+  });
+  const out = await result.output;
+  const s = out.suggestedScore;
+  return { explanation: out.explanation, suggestedScore: s === null ? null : Math.max(-2, Math.min(2, Math.round(s))) };
+}
