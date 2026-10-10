@@ -27,3 +27,15 @@ export const findCandidates = createServerFn({ method: "POST" })
     const { runAi } = await import("./candidates.server");
     return runAi(data);
   });
+
+const AskInput = z.object({
+  issueId: z.string().max(40),
+  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) })).min(1).max(20),
+});
+
+export const askAboutIssue = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => AskInput.parse(d))
+  .handler(async ({ data }) => {
+    const { runAsk } = await import("./candidates.server");
+    return runAsk(data);
+  });
