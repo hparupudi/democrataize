@@ -1,47 +1,52 @@
 # BallotMatch NC
 
-North Carolina midterm candidate matching: a Python ingestion pipeline plus a Next.js website in the same repository.
+North Carolina midterm candidate matching, organized as:
 
-## Repository layout
-
-| Path | Purpose |
+| Folder | Role |
 | --- | --- |
-| `src/nc_candidates/`, `run.py` | Ingest candidates, incumbency (FEC + Gemini), GeoCoder/TIGER boundaries, Gemini research & issue scores → TigerData |
-| `web/` | Voter-facing site: questionnaire, voice, ranking, address lookup, match results + map |
-| `config/questionnaire.yaml` | Nine scored issues (Abortion excluded) |
-| `sql/schema.sql` | TigerData schema |
+| [`scripts/`](scripts/) | Python pipeline: NCSBE + GeoCoder + TIGER boundaries + FEC/Gemini incumbency + Gemini research/scoring → TigerData |
+| [`backend/`](backend/) | Next.js API: ElevenLabs TTS/STT, Gemini scoring/explanations, TigerData candidate lookup |
+| [`frontend/`](frontend/) | Next.js UI: questionnaire, address, issue ranking, results + map |
 
-## Website (`web/`)
+## Quick start
 
-Flow:
-
-1. **Questionnaire** — Side A / Side B / Neutral / **C custom**, with ElevenLabs read-aloud and speech-to-text  
-2. **Address** — Census GeoCoder + TigerData candidate lookup for the voter’s districts  
-3. **Rank issues** — drag-and-drop; weight = `10 − rank`  
-4. **Results** — races sorted highest→lowest jurisdiction, map zoom, match %, stance scale, Gemini explanation, grassroots links  
-
-Match formula: weighted average of squared stance distances, converted to a 0–100% match (`max distance²` on [-2, 2] is 16).
-
-### Run the site
+### 1. Ingest candidates
 
 ```bash
-cd web
-cp .env.local.example .env.local   # fill real keys
-npm install
-npm run dev                        # http://localhost:3847
-```
-
-Required env vars (no fallbacks): `GEMINI_API_KEY`, `TIGERDATA_DATABASE_URL`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`.
-
-## Pipeline (root)
-
-```bash
+cd scripts
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e .
-cp .env.example .env               # fill GEMINI_API_KEY, TIGERDATA_DATABASE_URL, FEC_API_KEY
+cp .env.example .env    # GEMINI_API_KEY, TIGERDATA_DATABASE_URL, FEC_API_KEY
 python run.py
 ```
 
-Populate TigerData before using address matching on the website.
+### 2. Run backend API
 
-Incumbency: OpenFEC `incumbent_challenge` for US House/Senate (`I`/`C`/`O`); Gemini + Google Search for state races and any federal miss. Stored on `candidates` as `is_incumbent`, `incumbency_status`, `incumbency_source`, `incumbency_detail`.
+```bash
+cd backend
+cp .env.local.example .env.local
+npm install
+npm run dev             # :3848
+```
+
+### 3. Run frontend
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+npm install
+npm run dev             # :3847  (proxies /api → backend)
+```
+
+Open http://localhost:3847
+
+## API keys
+
+| Variable | scripts | backend | frontend |
+| --- | --- | --- | --- |
+| `GEMINI_API_KEY` | ✓ | ✓ | |
+| `TIGERDATA_DATABASE_URL` | ✓ | ✓ | |
+| `FEC_API_KEY` | ✓ | | |
+| `ELEVENLABS_API_KEY` | | ✓ | |
+| `ELEVENLABS_VOICE_ID` | | ✓ | |
+| `BACKEND_URL` (optional) | | | ✓ |
