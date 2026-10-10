@@ -6,7 +6,7 @@ North Carolina midterm candidate matching: a Python ingestion pipeline plus a Ne
 
 | Path | Purpose |
 | --- | --- |
-| `src/nc_candidates/`, `run.py` | Ingest candidates, GeoCoder/TIGER boundaries, Gemini research & issue scores → TigerData |
+| `src/nc_candidates/`, `run.py` | Ingest candidates, incumbency (FEC + Gemini), GeoCoder/TIGER boundaries, Gemini research & issue scores → TigerData |
 | `web/` | Voter-facing site: questionnaire, voice, ranking, address lookup, match results + map |
 | `config/questionnaire.yaml` | Nine scored issues (Abortion excluded) |
 | `sql/schema.sql` | TigerData schema |
@@ -43,3 +43,5 @@ python run.py
 ```
 
 Populate TigerData before using address matching on the website.
+
+Incumbency: OpenFEC `incumbent_challenge` for US House/Senate (`I`/`C`/`O`); Gemini + Google Search for state races and any federal miss. Stored on `candidates` as `is_incumbent`, `incumbency_status`, `incumbency_source`, `incumbency_detail`.
