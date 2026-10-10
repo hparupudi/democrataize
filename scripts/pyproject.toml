@@ -7,7 +7,7 @@ name = "nc-candidates"
 version = "1.0.0"
 description = "North Carolina candidate ingestion, Gemini research, and TigerData storage"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
   "google-genai>=1.40.0",
   "psycopg[binary]>=3.2.0",
