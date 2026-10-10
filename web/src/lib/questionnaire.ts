@@ -1,0 +1,99 @@
+export type Question = {
+  id: string;
+  title: string;
+  side_a: string;
+  side_b: string;
+};
+
+export const QUESTIONS: Question[] = [
+  {
+    id: "cost_of_living",
+    title: "Cost of Living",
+    side_a:
+      "The government should lower costs mainly by cutting regulations and taxes and letting markets bring prices down, even if that means fewer direct consumer protections.",
+    side_b:
+      "The government should lower costs through direct action, such as subsidies and aid for housing, childcare, and utilities, even if that increases public spending.",
+  },
+  {
+    id: "trade",
+    title: "Trade",
+    side_a:
+      "The US should reduce tariffs and expand trade agreements, even if some domestic industries face more foreign competition.",
+    side_b:
+      "The US should use tariffs to protect domestic industries and reduce trade deficits, even if some consumer prices rise.",
+  },
+  {
+    id: "taxes_and_social_programs",
+    title: "Taxes and Social Programs",
+    side_a:
+      "The government should raise taxes to fund expanded social programs, even if that increases the overall tax burden.",
+    side_b:
+      "The government should cut taxes and reduce spending on social programs, even if some people receive fewer benefits.",
+  },
+  {
+    id: "healthcare",
+    title: "Healthcare",
+    side_a:
+      "The government should limit its role in health insurance and rely more on private market options, even if fewer people end up covered.",
+    side_b:
+      "The government should expand publicly funded health coverage, even if that raises public spending.",
+  },
+  {
+    id: "immigration",
+    title: "Immigration",
+    side_a:
+      "Immigrants living in the US without legal status who have no criminal record should be offered a path to legal status, even if that may encourage future unauthorized immigration.",
+    side_b:
+      "Immigrants living in the US without legal status should be removed through expanded enforcement, even if that requires large-scale operations and significant cost.",
+  },
+  {
+    id: "artificial_intelligence",
+    title: "Artificial Intelligence",
+    side_a:
+      "The government should keep AI rules minimal so the US leads globally, even if that means more data center construction and higher energy demand.",
+    side_b:
+      "The government should strictly regulate AI companies and data center growth, even if that slows AI development.",
+  },
+  {
+    id: "voting_and_elections",
+    title: "Voting and Elections",
+    side_a:
+      "Elections should prioritize ease of voting, such as expanded mail-in and early voting, even if that means fewer verification steps.",
+    side_b:
+      "Elections should prioritize stricter verification, such as voter ID and proof of citizenship to register, even if that makes voting harder for some eligible voters.",
+  },
+  {
+    id: "public_safety",
+    title: "Public Safety",
+    side_a:
+      "Public safety policy should prioritize more police funding and stricter sentencing, even if incarceration rates rise.",
+    side_b:
+      "Public safety policy should prioritize crime prevention, rehabilitation, and policing reform, even if some offenders receive lighter sentences.",
+  },
+  {
+    id: "foreign_policy",
+    title: "Foreign Policy",
+    side_a:
+      "The US should reduce its military commitments abroad and avoid involvement in foreign conflicts, even if that means less influence over global events.",
+    side_b:
+      "The US should actively use military and economic power abroad to protect its interests and allies, even if that risks involvement in foreign conflicts.",
+  },
+];
+
+export const PRESET_SCORES = {
+  strongly_a: -2,
+  somewhat_a: -1,
+  neutral: 0,
+  somewhat_b: 1,
+  strongly_b: 2,
+} as const;
+
+export type ChoiceKind = "A" | "B" | "C" | "neutral";
+
+export function scoreLabel(score: number): string {
+  if (score <= -1.75) return "Strongly Side A";
+  if (score <= -0.75) return "Somewhat Side A";
+  if (score < 0.75) return "Neutral";
+  if (score < 1.75) return "Somewhat Side B";
+  return "Strongly Side B";
+}

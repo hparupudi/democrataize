@@ -1,0 +1,579 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --ink: #14241c;
+  --muted: #4b5d52;
+  --paper: #f3efe4;
+  --paper-2: #e7efea;
+  --pine: #1d4f3a;
+  --pine-deep: #123528;
+  --moss: #2f7a57;
+  --amber: #c7922c;
+  --sand: #d8c7a1;
+  --danger: #a33b2f;
+  --card: rgba(255, 252, 245, 0.82);
+  --line: rgba(20, 36, 28, 0.12);
+  --shadow: 0 18px 50px rgba(18, 53, 40, 0.12);
+  --radius: 18px;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "DM Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--ink);
+  font-family: var(--font-body);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(47, 122, 87, 0.18), transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, rgba(199, 146, 44, 0.16), transparent 50%),
+    linear-gradient(165deg, #f7f3e8 0%, #e8f0ea 45%, #f2ebe0 100%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image:
+    linear-gradient(rgba(20, 36, 28, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 36, 28, 0.5) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+a {
+  color: var(--pine);
+}
+
+.shell {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.site-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  color: var(--pine-deep);
+  text-decoration: none;
+}
+
+.hero {
+  min-height: calc(100vh - 6rem);
+  display: grid;
+  align-content: center;
+  gap: 1.25rem;
+  animation: rise 0.7s ease both;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 8vw, 5.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  margin: 0;
+  max-width: 12ch;
+  color: var(--pine-deep);
+}
+
+.hero p {
+  max-width: 38rem;
+  font-size: 1.15rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.cta-row,
+.voice-row,
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn.primary {
+  background: var(--pine);
+  color: #f7f3e8;
+  box-shadow: 0 10px 24px rgba(29, 79, 58, 0.25);
+}
+
+.btn.secondary {
+  background: var(--amber);
+  color: #1c1608;
+}
+
+.btn.ghost {
+  background: rgba(255, 252, 245, 0.7);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.btn.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.4rem;
+  backdrop-filter: blur(8px);
+  animation: rise 0.45s ease both;
+}
+
+.step-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--moss);
+  margin: 0 0 0.35rem;
+}
+
+.panel h2,
+.panel h3,
+.candidate-card h4 {
+  font-family: var(--font-display);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.progress-line {
+  height: 6px;
+  background: rgba(20, 36, 28, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 1rem 0 1.25rem;
+}
+
+.progress-line > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--moss), var(--amber));
+  transition: width 0.35s ease;
+}
+
+.side-option {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: rgba(255, 252, 245, 0.9);
+  border-radius: 14px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.side-option:hover,
+.side-option.selected {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px rgba(47, 122, 87, 0.12);
+}
+
+.side-option strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.strength-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.strength-row button {
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: white;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+
+.strength-row button.selected {
+  background: var(--pine);
+  color: white;
+  border-color: var(--pine);
+}
+
+textarea,
+input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  background: white;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 252, 245, 0.95);
+  border: 1px solid var(--line);
+}
+
+.rank-row.dragging {
+  box-shadow: var(--shadow);
+  opacity: 0.95;
+}
+
+.grip {
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  color: var(--muted);
+  display: inline-flex;
+}
+
+.rank-num {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: var(--pine);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.rank-weight {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.results-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.race-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.race-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: rgba(255, 252, 245, 0.92);
+  border-radius: 16px;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.race-btn.active {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px rgba(47, 122, 87, 0.12);
+}
+
+.race-btn h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.race-btn p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.map-shell {
+  height: min(62vh, 520px);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 1rem;
+}
+
+.district-map {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.candidate-card {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.candidate-head {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.candidate-identity {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.candidate-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--sand);
+}
+
+.candidate-photo.placeholder {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--pine-deep);
+}
+
+.match-bar-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.match-bar-track {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(20, 36, 28, 0.08);
+  overflow: hidden;
+}
+
+.match-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.match-pct {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.dropdown-toggle {
+  margin-top: 0.85rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+.stance-panel {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.stance-row {
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.stance-title {
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.stance-scale {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.scale-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6f8f7c, #d8c7a1, #c7922c);
+}
+
+.dot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dot.you {
+  background: var(--pine);
+}
+
+.dot.them {
+  background: var(--amber);
+}
+
+.stance-meta {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.explain-box {
+  background: rgba(29, 79, 58, 0.06);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.explain-box h5 {
+  margin: 0.75rem 0 0.35rem;
+}
+
+.grassroots {
+  margin-top: 0.85rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+}
+
+.grassroots summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.grassroots-body {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.error-text {
+  color: var(--danger);
+  margin: 0.5rem 0 0;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .results-layout,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-shell {
+    position: relative;
+    top: 0;
+    height: 280px;
+  }
+
+  .hero h1 {
+    max-width: none;
+  }
+}

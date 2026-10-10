@@ -1,113 +1,45 @@
-# NC Candidate Research Pipeline
+# BallotMatch NC
 
-Python pipeline that collects major-party North Carolina candidates for the 2026 general election, attaches Census district boundaries, researches each candidate with Google Gemini (Google Search grounding), scores them on nine political issues, and stores everything in a TigerData (TimescaleDB/PostgreSQL) database.
+North Carolina midterm candidate matching: a Python ingestion pipeline plus a Next.js website in the same repository.
 
-Abortion is intentionally excluded from scoring.
+## Repository layout
 
-## What it collects
-
-For Democratic, Republican, Libertarian, Green, and Independent/Unaffiliated candidates in:
-
-- US Senate
-- US House
-- NC House
-- NC Senate
-- Statewide executive offices (when on the ballot)
-- Statewide judicial offices elected by voters (NC Supreme Court, NC Court of Appeals)
-
-Stored fields include:
-
-- Candidate name, party, contest, district
-- Candidate photo URL (discovered via Gemini web search)
-- Census GeoCoder lat/lon + geography lookup from the candidate address
-- District GeoJSON boundaries from Census TIGERweb (map-ready)
-- Social media posts, campaign platform, Wikipedia/wiki page, speech transcripts
-- Issue scores from **-2** (strongly Side A) to **2** (strongly Side B) for each of the nine questionnaire issues
-
-## Required API keys
-
-There is **no demo mode, mock data, or fallback**. The script exits immediately if any required key is missing, blank, or an obvious placeholder.
-
-| Variable | Purpose |
+| Path | Purpose |
 | --- | --- |
-| `GEMINI_API_KEY` | Google Gemini research + issue scoring with Google Search tool |
-| `TIGERDATA_DATABASE_URL` | TigerData / TimescaleDB Postgres connection URI |
-| `FEC_API_KEY` | OpenFEC lookup for federal candidate IDs |
+| `src/nc_candidates/`, `run.py` | Ingest candidates, GeoCoder/TIGER boundaries, Gemini research & issue scores → TigerData |
+| `web/` | Voter-facing site: questionnaire, voice, ranking, address lookup, match results + map |
+| `config/questionnaire.yaml` | Nine scored issues (Abortion excluded) |
+| `sql/schema.sql` | TigerData schema |
 
-Copy the template and fill in real values:
+## Website (`web/`)
+
+Flow:
+
+1. **Questionnaire** — Side A / Side B / Neutral / **C custom**, with ElevenLabs read-aloud and speech-to-text  
+2. **Address** — Census GeoCoder + TigerData candidate lookup for the voter’s districts  
+3. **Rank issues** — drag-and-drop; weight = `10 − rank`  
+4. **Results** — races sorted highest→lowest jurisdiction, map zoom, match %, stance scale, Gemini explanation, grassroots links  
+
+Match formula: weighted average of squared stance distances, converted to a 0–100% match (`max distance²` on [-2, 2] is 16).
+
+### Run the site
 
 ```bash
-cp .env.example .env
+cd web
+cp .env.local.example .env.local   # fill real keys
+npm install
+npm run dev                        # http://localhost:3847
 ```
 
-## Setup
+Required env vars (no fallbacks): `GEMINI_API_KEY`, `TIGERDATA_DATABASE_URL`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`.
+
+## Pipeline (root)
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e .
-```
-
-Apply schema + run the full pipeline:
-
-```bash
+cp .env.example .env               # fill GEMINI_API_KEY, TIGERDATA_DATABASE_URL, FEC_API_KEY
 python run.py
 ```
 
-Useful filters while iterating with real credentials:
-
-```bash
-# Only US Senate + US House
-python run.py --office-type us_senate --office-type us_house
-
-# Process a small batch first
-python run.py --limit 3
-```
-
-## Data sources
-
-| Source | Role |
-| --- | --- |
-| [NCSBE candidate CSV](https://dl.ncsbe.gov/Elections/2026/Candidate%20Filing/Candidate_Listing_2026.csv) | Official candidate roster (GeoCoder does not list candidates) |
-| [Census GeoCoder](https://geocoding.geo.census.gov/geocoder/) | Address → coordinates + legislative/congressional geography |
-| [Census TIGERweb Legislative](https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Legislative/MapServer) | District polygons as GeoJSON |
-| [OpenFEC](https://api.open.fec.gov/) | Federal candidate IDs |
-| Google Gemini + Google Search | Photos, social posts, campaign platform, wiki pages, speech transcripts, issue scores |
-
-## Questionnaire
-
-The nine scored issues live in `config/questionnaire.yaml`, derived from `data/questionnaire/midterm_voting_app.pdf` with Abortion removed:
-
-1. Cost of Living  
-2. Trade  
-3. Taxes and Social Programs  
-4. Healthcare  
-5. Immigration  
-6. Artificial Intelligence  
-7. Voting and Elections  
-8. Public Safety  
-9. Foreign Policy  
-
-## Database tables
-
-See `sql/schema.sql`:
-
-- `districts` — GeoJSON boundaries
-- `candidates` — core candidate + geocoder fields
-- `candidate_research` — Gemini research packet
-- `candidate_issue_scores` — one row per candidate × issue (`score` in `-2..2`)
-
-## Project layout
-
-```
-config/questionnaire.yaml
-sql/schema.sql
-src/nc_candidates/
-  config.py
-  pipeline.py
-  sources/          # NCSBE, GeoCoder, TIGER, FEC
-  gemini/           # research + evaluation
-  db/tigerdata.py
-run.py
-.env.example
-```
+Populate TigerData before using address matching on the website.
