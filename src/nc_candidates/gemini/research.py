@@ -29,11 +29,17 @@ Return ONLY valid JSON (no markdown) with this exact shape:
     "platform_summary": "summary of official campaign platform/issues",
     "key_positions": ["..."]
   },
-  "wikipedia": {
-    "url": "https://... or null",
-    "title": "page title or null",
-    "summary": "short biographical/political summary or null"
-  },
+  "introduced_legislation": [
+    {
+      "title": "bill title",
+      "bill_id": "H.R. 123 / S. 45 / NC HB 12 / etc., or null",
+      "url": "https://congress.gov or ncleg.gov (or equivalent) bill page",
+      "chamber": "US House|US Senate|NC House|NC Senate|Other",
+      "status": "introduced|in committee|passed|enacted|failed|unknown",
+      "summary": "1-2 sentence description of what the bill does",
+      "date": "ISO date or null"
+    }
+  ],
   "speech_transcripts": [
     {
       "title": "...",
@@ -43,9 +49,12 @@ Return ONLY valid JSON (no markdown) with this exact shape:
     }
   ]
 }
-Include as many real, source-backed items as you can find. Prefer official campaign,
-Wikipedia/Ballotpedia, and primary-source speech transcript pages. Use null/[] when
-nothing trustworthy is found. Do not invent URLs.
+Include as many real, source-backed items as you can find. Prefer official campaign
+sites, Congress.gov / NC General Assembly bill pages, and primary-source speech
+transcript pages. Do NOT use Wikipedia or other wiki pages as sources.
+Use null/[] when nothing trustworthy is found. Do not invent URLs.
+For non-incumbents or candidates with no sponsored bills, return an empty
+introduced_legislation array.
 """
 
 
@@ -92,11 +101,16 @@ Candidate:
 - City/state: {candidate.city}, {candidate.state}
 
 Find, when available:
-1) A direct public URL to a candidate photo (campaign site, Wikipedia/Commons, Ballotpedia, official page).
+1) A direct public URL to a candidate photo (campaign site, Ballotpedia, official
+   government/campaign page — not Wikipedia).
 2) Relevant social media posts or official campaign social accounts with example post URLs.
 3) Their official campaign website and platform/issue positions.
-4) Their Wikipedia or Ballotpedia/wiki page.
+4) Legislation they have introduced or sponsored (US Congress via Congress.gov, or
+   NC General Assembly via ncleg.gov / equivalent). Prefer bills they sponsored or
+   co-sponsored as the primary author when possible; include bill links and short summaries.
 5) Transcripts or reliable write-ups of speeches (as many as applicable).
+
+Do not use Wikipedia or other wiki pages as sources.
 
 {RESEARCH_SCHEMA_HINT}
 """

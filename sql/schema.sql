@@ -53,12 +53,16 @@ CREATE TABLE IF NOT EXISTS candidate_research (
     candidate_id TEXT PRIMARY KEY REFERENCES candidates (candidate_id) ON DELETE CASCADE,
     social_media_posts JSONB NOT NULL DEFAULT '[]'::jsonb,
     campaign_platform JSONB NOT NULL DEFAULT '{}'::jsonb,
-    wikipedia JSONB NOT NULL DEFAULT '{}'::jsonb,
+    introduced_legislation JSONB NOT NULL DEFAULT '[]'::jsonb,
     speech_transcripts JSONB NOT NULL DEFAULT '[]'::jsonb,
     photo_url TEXT,
     raw_gemini_response TEXT,
     researched_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Upgrade path for DBs created when wikipedia was stored instead of legislation.
+ALTER TABLE candidate_research
+    ADD COLUMN IF NOT EXISTS introduced_legislation JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 CREATE TABLE IF NOT EXISTS candidate_issue_scores (
     candidate_id TEXT NOT NULL REFERENCES candidates (candidate_id) ON DELETE CASCADE,

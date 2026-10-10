@@ -32,7 +32,14 @@ export type CandidateView = {
   incumbencySource: string | null;
   campaignWebsite: string | null;
   socialLinks: { platform: string; url: string }[];
-  wikipediaUrl: string | null;
+  introducedLegislation: {
+    title: string;
+    billId: string | null;
+    url: string | null;
+    chamber: string | null;
+    status: string | null;
+    summary: string | null;
+  }[];
   scores: Record<string, number>;
   scoreDetails: Record<
     string,

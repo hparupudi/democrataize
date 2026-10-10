@@ -176,17 +176,17 @@ class TigerDataStore:
     def upsert_research(self, candidate_id: str, research: dict[str, Any]) -> None:
         sql = """
             INSERT INTO candidate_research (
-                candidate_id, social_media_posts, campaign_platform, wikipedia,
+                candidate_id, social_media_posts, campaign_platform, introduced_legislation,
                 speech_transcripts, photo_url, raw_gemini_response, researched_at
             ) VALUES (
                 %(candidate_id)s, %(social_media_posts)s::jsonb, %(campaign_platform)s::jsonb,
-                %(wikipedia)s::jsonb, %(speech_transcripts)s::jsonb, %(photo_url)s,
+                %(introduced_legislation)s::jsonb, %(speech_transcripts)s::jsonb, %(photo_url)s,
                 %(raw_gemini_response)s, NOW()
             )
             ON CONFLICT (candidate_id) DO UPDATE SET
                 social_media_posts = EXCLUDED.social_media_posts,
                 campaign_platform = EXCLUDED.campaign_platform,
-                wikipedia = EXCLUDED.wikipedia,
+                introduced_legislation = EXCLUDED.introduced_legislation,
                 speech_transcripts = EXCLUDED.speech_transcripts,
                 photo_url = EXCLUDED.photo_url,
                 raw_gemini_response = EXCLUDED.raw_gemini_response,
@@ -199,7 +199,9 @@ class TigerDataStore:
                     "candidate_id": candidate_id,
                     "social_media_posts": json.dumps(research.get("social_media_posts") or []),
                     "campaign_platform": json.dumps(research.get("campaign_platform") or {}),
-                    "wikipedia": json.dumps(research.get("wikipedia") or {}),
+                    "introduced_legislation": json.dumps(
+                        research.get("introduced_legislation") or []
+                    ),
                     "speech_transcripts": json.dumps(research.get("speech_transcripts") or []),
                     "photo_url": research.get("photo_url"),
                     "raw_gemini_response": research.get("_raw_text"),

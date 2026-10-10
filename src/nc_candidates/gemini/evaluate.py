@@ -58,9 +58,10 @@ class GeminiEvaluator:
         prompt = f"""
 Evaluate this North Carolina candidate on each political issue below.
 Use the Google Search tool plus the research packet. Base scores only on evidence
-from their social posts, campaign platform, Wikipedia/wiki page, speeches, voting
-record, or other attributable public statements. If evidence is insufficient for an
-issue, score 0 (Neutral) and say so in the rationale.
+from their social posts, campaign platform, introduced/sponsored legislation,
+speeches, voting record, or other attributable public statements. Do not use
+Wikipedia. If evidence is insufficient for an issue, score 0 (Neutral) and say so
+in the rationale.
 
 Scoring scale (integer only):
 -2 = strongly support Side A

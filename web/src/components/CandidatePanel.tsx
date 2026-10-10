@@ -176,11 +176,6 @@ export function CandidatePanel({
               Campaign website <ExternalLink size={14} />
             </a>
           ) : null}
-          {candidate.wikipediaUrl ? (
-            <a href={candidate.wikipediaUrl} target="_blank" rel="noreferrer">
-              Wikipedia / wiki <ExternalLink size={14} />
-            </a>
-          ) : null}
           {candidate.email ? (
             <a href={`mailto:${candidate.email}`}>Email campaign: {candidate.email}</a>
           ) : null}
@@ -192,10 +187,33 @@ export function CandidatePanel({
               {link.platform} <ExternalLink size={14} />
             </a>
           ))}
+          {candidate.introducedLegislation?.length ? (
+            <div>
+              <strong>Introduced legislation</strong>
+              <ul>
+                {candidate.introducedLegislation.map((bill) => (
+                  <li key={`${bill.billId || bill.title}-${bill.url || ""}`}>
+                    {bill.url ? (
+                      <a href={bill.url} target="_blank" rel="noreferrer">
+                        {bill.billId ? `${bill.billId}: ` : ""}
+                        {bill.title} <ExternalLink size={14} />
+                      </a>
+                    ) : (
+                      <span>
+                        {bill.billId ? `${bill.billId}: ` : ""}
+                        {bill.title}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {!candidate.campaignWebsite &&
           !candidate.email &&
           !candidate.phone &&
-          !candidate.socialLinks.length ? (
+          !candidate.socialLinks.length &&
+          !candidate.introducedLegislation?.length ? (
             <p>No campaign contact links are stored for this candidate yet.</p>
           ) : null}
         </div>

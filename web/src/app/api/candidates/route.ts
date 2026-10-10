@@ -29,7 +29,16 @@ type CandidateRow = {
   research_photo: string | null;
   campaign_platform: Record<string, unknown> | null;
   social_media_posts: { platform?: string; url?: string }[] | null;
-  wikipedia: { url?: string } | null;
+  introduced_legislation:
+    | {
+        title?: string;
+        bill_id?: string;
+        url?: string;
+        chamber?: string;
+        status?: string;
+        summary?: string;
+      }[]
+    | null;
   boundary_geojson: FeatureCollection | null;
 };
 
@@ -91,7 +100,7 @@ export async function POST(request: Request) {
         r.photo_url AS research_photo,
         r.campaign_platform,
         r.social_media_posts,
-        r.wikipedia,
+        r.introduced_legislation,
         d.boundary_geojson
       FROM candidates c
       LEFT JOIN candidate_research r ON r.candidate_id = c.candidate_id
@@ -196,7 +205,16 @@ export async function POST(request: Request) {
         incumbencySource: c.incumbency_source,
         campaignWebsite: website,
         socialLinks,
-        wikipediaUrl: c.wikipedia?.url || null,
+        introducedLegislation: (c.introduced_legislation || [])
+          .filter((bill) => bill.url || bill.title)
+          .map((bill) => ({
+            title: bill.title || bill.bill_id || "Bill",
+            billId: bill.bill_id || null,
+            url: bill.url || null,
+            chamber: bill.chamber || null,
+            status: bill.status || null,
+            summary: bill.summary || null,
+          })),
         scores: scoreMap,
         scoreDetails,
         matchPercent,
