@@ -12,3 +12,4 @@ data/cache/
 *.log
 .DS_Store
 agent-tools/
+.cursor/
