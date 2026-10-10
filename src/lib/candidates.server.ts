@@ -66,14 +66,14 @@ ${data.others.map((o) => `- ${o.issue}: "${o.text}"`).join("\n") || "(none)"}`;
 
   const result = streamText({
     model: provider.responses("openai/gpt-6-astra"),
-    system: "You are a nonpartisan, factual civic research assistant. Be accurate and neutral.",
+    instructions: "You are a nonpartisan, factual civic research assistant. Be accurate and neutral.",
     prompt,
-    experimental_output: Output.object({ schema: Schema }),
+    output: Output.object({ schema: Schema }),
     providerOptions: {
       openai: { store: false, forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", include: ["reasoning.encrypted_content"] },
     },
   });
-  const out = await result.experimental_output;
+  const out = await result.output;
 
   const clamp = (n: number) => Math.max(-2, Math.min(2, Math.round(n)));
   const candidates: CandidateResult[] = await Promise.all(
