@@ -12,7 +12,7 @@ export function IssueHelperButton({ open, onClick }: { open: boolean; onClick: (
       onClick={onClick}
       aria-label={open ? "Close help" : "Ask AI about this question"}
       title="Not sure? Ask AI"
-      className="mt-4 flex items-center gap-2 rounded-full border border-primary/30 bg-background py-1 pl-1 pr-4 text-sm font-semibold text-primary transition-colors hover:bg-muted"
+      className="flex items-center gap-2 rounded-full border bg-card py-1 pl-1 pr-4 shadow-card text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent"
     >
       {open ? <X className="h-7 w-7 rounded-full border-2 border-primary p-1" /> : <CircleArrowRight className="h-7 w-7" strokeWidth={1.75} />}
       {open ? "Close help" : "Not sure? Ask AI"}
@@ -46,17 +46,17 @@ export function IssueHelperPanel({ issueId, onPick }: { issueId: string; onPick:
   }
 
   return (
-    <div className="mt-4 rounded-md border-2 border-primary/30 bg-muted p-4">
+    <div className="mt-4 animate-fade-up rounded-2xl border bg-secondary/60 p-4">
       <p className="text-sm font-semibold text-primary">Not sure about this one? Ask anything.</p>
       <div className="mt-3 space-y-3">
         {msgs.map((m, i) =>
           m.role === "user" ? (
-            <p key={i} className="ml-auto max-w-[85%] rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">{m.content}</p>
+            <p key={i} className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-sm text-primary-foreground">{m.content}</p>
           ) : (
             <div key={i} className="max-w-[95%] text-sm">
               <p className="whitespace-pre-wrap">{m.content}</p>
               {m.suggested !== undefined && m.suggested !== null && (
-                <button type="button" onClick={() => onPick(m.suggested as number)} className="mt-2 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground">
+                <button type="button" onClick={() => onPick(m.suggested as number)} className="mt-2 rounded-full bg-accent px-3.5 py-1.5 shadow-card transition hover:opacity-90 text-xs font-semibold text-accent-foreground">
                   Pick "{LABELS[m.suggested]}"
                 </button>
               )}
@@ -72,9 +72,9 @@ export function IssueHelperPanel({ issueId, onPick }: { issueId: string; onPick:
           onChange={(e) => setText(e.target.value)}
           maxLength={1000}
           placeholder="e.g. What do tariffs actually do? I care most about keeping prices low."
-          className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border bg-card px-3.5 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-4 focus:ring-accent-soft"
         />
-        <button disabled={loading || !text.trim()} className="rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">Ask</button>
+        <button disabled={loading || !text.trim()} className="rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50">Ask</button>
       </form>
     </div>
   );
