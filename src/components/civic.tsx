@@ -3,7 +3,7 @@ import { ISSUES } from "@/lib/issues";
 
 export function LogoMark() {
   return (
-    <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-card">
+    <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-card">
       <MapPin className="h-5 w-5" strokeWidth={2.2} />
       <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-highlight ring-2 ring-background" />
     </span>
@@ -23,7 +23,7 @@ export function MatchRing({ pct, size = 84 }: { pct: number; size?: number }) {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          className="fill-none stroke-accent transition-[stroke-dashoffset] duration-1000 ease-out"
+          className="fill-none stroke-primary transition-[stroke-dashoffset] duration-1000 ease-out"
           strokeWidth={8}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -127,7 +127,7 @@ export function HeroMap() {
       <div className="absolute bottom-4 left-4 right-4 rounded-xl bg-card p-3 text-card-foreground shadow-lift">
         <div className="flex items-center justify-between text-xs font-semibold">
           <span>Your ballot, matched</span>
-          <span className="text-accent">9 issues</span>
+          <span className="text-accent">9 issues · 1 ballot</span>
         </div>
         <div className="mt-2 space-y-1.5">
           {[86, 64, 41].map((w, i) => (
