@@ -10,22 +10,25 @@ let pool: Pool | null = null;
  * "self-signed certificate in certificate chain". Strip those params and
  * force rejectUnauthorized: false for local/dev connections.
  */
-function connectionConfig() {
-  const raw = requireTigerDataUrl();
-  const url = new URL(raw);
-  for (const key of ["sslmode", "sslrootcert", "sslcert", "sslkey"]) {
-    url.searchParams.delete(key);
-  }
-  return {
-    connectionString: url.toString(),
-    ssl: { rejectUnauthorized: false },
-    max: 8,
-  };
+function stripSslQueryParams(connectionString: string): string {
+  const qIndex = connectionString.indexOf("?");
+  if (qIndex < 0) return connectionString;
+  const base = connectionString.slice(0, qIndex);
+  const query = connectionString.slice(qIndex + 1);
+  const kept = query.split("&").filter((part) => {
+    const key = part.split("=")[0]?.toLowerCase();
+    return Boolean(key) && !["sslmode", "sslrootcert", "sslcert", "sslkey"].includes(key);
+  });
+  return kept.length ? `${base}?${kept.join("&")}` : base;
 }
 
 export function getPool(): Pool {
   if (!pool) {
-    pool = new Pool(connectionConfig());
+    pool = new Pool({
+      connectionString: stripSslQueryParams(requireTigerDataUrl()),
+      ssl: { rejectUnauthorized: false },
+      max: 8,
+    });
   }
   return pool;
 }
