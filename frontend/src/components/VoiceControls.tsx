@@ -98,11 +98,11 @@ export function VoiceControls({ speakText, onTranscript }: Props) {
   }
 
   return (
-    <div className="voice-controls">
-      <div className="voice-row">
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="btn ghost"
+          className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-semibold text-primary transition hover:bg-muted disabled:opacity-50"
           onClick={handleSpeak}
           disabled={speaking || busy || recording}
         >
@@ -112,7 +112,7 @@ export function VoiceControls({ speakText, onTranscript }: Props) {
         {!recording ? (
           <button
             type="button"
-            className="btn ghost"
+            className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-semibold text-primary transition hover:bg-muted disabled:opacity-50"
             onClick={startRecording}
             disabled={busy || speaking}
           >
@@ -120,7 +120,11 @@ export function VoiceControls({ speakText, onTranscript }: Props) {
             Speak answer
           </button>
         ) : (
-          <button type="button" className="btn danger" onClick={stopRecording}>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-white"
+            onClick={stopRecording}
+          >
             <Square size={16} />
             Stop
           </button>

@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ExternalLink, Loader2, Megaphone } from "lucide-react";
-import { QUESTIONS, scoreLabel } from "@/lib/questionnaire";
-import { MatchBar } from "./MatchBar";
+import {
+  ChevronDown,
+  ExternalLink,
+  Loader2,
+  Megaphone,
+} from "lucide-react";
+import { IssueCompare, MatchRing } from "./civic";
 import type { CandidateView } from "@/lib/store";
 import { playTts } from "./VoiceControls";
 
@@ -56,89 +60,55 @@ export function CandidatePanel({
   }
 
   return (
-    <article className="candidate-card">
-      <header className="candidate-head">
-        <div className="candidate-identity">
-          {candidate.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={candidate.photoUrl}
-              alt={candidate.fullName}
-              className="candidate-photo"
-            />
-          ) : (
-            <div className="candidate-photo placeholder">
-              {candidate.nameOnBallot.slice(0, 1)}
-            </div>
-          )}
-          <div>
-            <h4>
-              {candidate.nameOnBallot}
-              {candidate.isIncumbent ? " (Incumbent)" : ""}
-            </h4>
-            <p>
-              {candidate.partyName} · {candidate.districtLabel || "Statewide"}
-              {candidate.incumbencyStatus && !candidate.isIncumbent
-                ? ` · ${candidate.incumbencyStatus.replaceAll("_", " ")}`
-                : ""}
-            </p>
+    <article className="card-civic card-lift animate-fade-up p-6">
+      <div className="flex items-start gap-4">
+        {candidate.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={candidate.photoUrl}
+            alt={candidate.fullName}
+            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-[var(--shadow-card)] ring-1 ring-border"
+          />
+        ) : (
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-secondary font-display text-2xl text-primary">
+            {candidate.nameOnBallot.slice(0, 2)}
           </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-2xl leading-tight text-primary">
+            {candidate.nameOnBallot}
+            {candidate.isIncumbent ? " (Incumbent)" : ""}
+          </h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {candidate.partyName} · {candidate.districtLabel || "Statewide"}
+          </p>
         </div>
         {insufficient ? (
-          <p className="insufficient-note">
+          <p className="insufficient-note max-w-[12rem] text-sm">
             Insufficient candidate information
           </p>
         ) : (
-          <MatchBar percent={candidate.matchPercent ?? 0} />
+          <MatchRing pct={candidate.matchPercent ?? 0} />
         )}
-      </header>
+      </div>
 
       {insufficient ? null : (
         <>
           <button
             type="button"
-            className="dropdown-toggle"
+            className="mt-5 flex w-full items-center justify-between rounded-xl border bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:bg-muted"
             onClick={() => setOpen((v) => !v)}
           >
             Compare stances
-            <ChevronDown className={open ? "rotated" : ""} size={18} />
+            <ChevronDown className={open ? "rotate-180" : ""} size={18} />
           </button>
 
           {open ? (
-            <div className="stance-panel">
-              {QUESTIONS.map((q) => {
-                const u = userScores[q.id] ?? 0;
-                const c = candidate.scores[q.id] ?? 0;
-                return (
-                  <div key={q.id} className="stance-row">
-                    <div className="stance-title">{q.title}</div>
-                    <div className="stance-scale">
-                      <span className="side-label">A</span>
-                      <div className="scale-track">
-                        <span
-                          className="dot you"
-                          style={{ left: `${((u + 2) / 4) * 100}%` }}
-                          title={`You: ${scoreLabel(u)} (${u})`}
-                        />
-                        <span
-                          className="dot them"
-                          style={{ left: `${((c + 2) / 4) * 100}%` }}
-                          title={`${candidate.nameOnBallot}: ${scoreLabel(c)} (${c})`}
-                        />
-                      </div>
-                      <span className="side-label">B</span>
-                    </div>
-                    <div className="stance-meta">
-                      You {u >= 0 ? `+${u}` : u} · Candidate{" "}
-                      {c >= 0 ? `+${c}` : c}
-                    </div>
-                  </div>
-                );
-              })}
-
+            <div className="mt-4 rounded-xl border bg-muted/60 p-4">
+              <IssueCompare user={userScores} cand={candidate.scores} />
               <button
                 type="button"
-                className="btn secondary"
+                className="mt-4 flex items-center gap-2 rounded-xl border bg-card px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-muted disabled:opacity-60"
                 onClick={loadExplain}
                 disabled={loadingExplain}
               >
@@ -147,25 +117,25 @@ export function CandidatePanel({
                 ) : null}
                 AI explanation of similarities & differences
               </button>
-              {error ? <p className="error-text">{error}</p> : null}
+              {error ? <p className="error-text mt-2">{error}</p> : null}
               {explain ? (
-                <div className="explain-box">
+                <div className="mt-4 space-y-2 text-sm">
                   <p>{explain.summary}</p>
-                  <h5>Similarities</h5>
-                  <ul>
+                  <h5 className="font-semibold text-primary">Similarities</h5>
+                  <ul className="list-disc space-y-1 pl-5">
                     {explain.similarities?.map((s) => (
                       <li key={s}>{s}</li>
                     ))}
                   </ul>
-                  <h5>Differences</h5>
-                  <ul>
+                  <h5 className="font-semibold text-primary">Differences</h5>
+                  <ul className="list-disc space-y-1 pl-5">
                     {explain.differences?.map((s) => (
                       <li key={s}>{s}</li>
                     ))}
                   </ul>
                   <button
                     type="button"
-                    className="btn ghost"
+                    className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary"
                     onClick={() =>
                       playTts(
                         `${explain.summary} Similarities: ${explain.similarities?.join(". ")}. Differences: ${explain.differences?.join(". ")}`,
@@ -181,37 +151,63 @@ export function CandidatePanel({
         </>
       )}
 
-      <details className="grassroots">
-        <summary>
+      <details className="mt-5 border-t pt-4">
+        <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-primary">
           <Megaphone size={16} /> Connect to grassroots campaigning
         </summary>
-        <div className="grassroots-body">
+        <div className="mt-3 flex flex-wrap gap-2 text-sm">
           {candidate.campaignWebsite ? (
-            <a href={candidate.campaignWebsite} target="_blank" rel="noreferrer">
+            <a
+              href={candidate.campaignWebsite}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 font-semibold text-primary transition hover:bg-[var(--accent-soft)]"
+            >
               Campaign website <ExternalLink size={14} />
             </a>
           ) : null}
           {candidate.email ? (
-            <a href={`mailto:${candidate.email}`}>Email campaign: {candidate.email}</a>
+            <a
+              href={`mailto:${candidate.email}`}
+              className="rounded-full bg-secondary px-3 py-1.5 font-semibold text-primary"
+            >
+              Email: {candidate.email}
+            </a>
           ) : null}
           {candidate.phone ? (
-            <a href={`tel:${candidate.phone}`}>Call / text: {candidate.phone}</a>
+            <a
+              href={`tel:${candidate.phone}`}
+              className="rounded-full bg-secondary px-3 py-1.5 font-semibold text-primary"
+            >
+              Call / text: {candidate.phone}
+            </a>
           ) : null}
           {candidate.socialLinks.map((link) => (
-            <a key={link.url} href={link.url} target="_blank" rel="noreferrer">
+            <a
+              key={link.url}
+              href={link.url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 font-semibold text-primary"
+            >
               {link.platform} <ExternalLink size={14} />
             </a>
           ))}
           {candidate.introducedLegislation?.length ? (
-            <div>
-              <strong>Introduced legislation</strong>
-              <ul>
+            <div className="w-full pt-2">
+              <strong className="text-primary">Introduced legislation</strong>
+              <ul className="mt-1 space-y-1">
                 {candidate.introducedLegislation.map((bill) => (
                   <li key={`${bill.billId || bill.title}-${bill.url || ""}`}>
                     {bill.url ? (
-                      <a href={bill.url} target="_blank" rel="noreferrer">
+                      <a
+                        href={bill.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline decoration-border underline-offset-2 hover:text-accent"
+                      >
                         {bill.billId ? `${bill.billId}: ` : ""}
-                        {bill.title} <ExternalLink size={14} />
+                        {bill.title}
                       </a>
                     ) : (
                       <span>
@@ -229,7 +225,9 @@ export function CandidatePanel({
           !candidate.phone &&
           !candidate.socialLinks.length &&
           !candidate.introducedLegislation?.length ? (
-            <p>No campaign contact links are stored for this candidate yet.</p>
+            <p className="text-muted-foreground">
+              No campaign contact links are stored for this candidate yet.
+            </p>
           ) : null}
         </div>
       </details>

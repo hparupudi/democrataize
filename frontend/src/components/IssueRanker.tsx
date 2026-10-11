@@ -33,18 +33,29 @@ function SortableRow({
   return (
     <li
       ref={setNodeRef}
-      className={`rank-row ${isDragging ? "dragging" : ""}`}
+      className={`flex items-center gap-3 rounded-xl border bg-card px-3 py-3 shadow-[var(--shadow-card)] transition ${
+        isDragging ? "z-10 scale-[1.02] shadow-[var(--shadow-lift)]" : ""
+      }`}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
       }}
     >
-      <button type="button" className="grip" {...attributes} {...listeners}>
+      <button
+        type="button"
+        className="cursor-grab rounded-lg p-1 text-muted-foreground hover:bg-muted active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
         <GripVertical size={18} />
       </button>
-      <span className="rank-num">{rank}</span>
-      <span className="rank-title">{title}</span>
-      <span className="rank-weight">weight {10 - rank}</span>
+      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+        {rank}
+      </span>
+      <span className="flex-1 font-semibold text-primary">{title}</span>
+      <span className="text-xs font-medium text-muted-foreground">
+        weight {10 - rank}
+      </span>
     </li>
   );
 }
@@ -56,7 +67,9 @@ export function IssueRanker({
   ranks: string[];
   onChange: (next: string[]) => void;
 }) {
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
   const titleById = Object.fromEntries(QUESTIONS.map((q) => [q.id, q.title]));
 
   function onDragEnd(event: DragEndEvent) {
@@ -68,9 +81,13 @@ export function IssueRanker({
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={onDragEnd}
+    >
       <SortableContext items={ranks} strategy={verticalListSortingStrategy}>
-        <ol className="rank-list">
+        <ol className="m-0 flex list-none flex-col gap-2 p-0">
           {ranks.map((id, index) => (
             <SortableRow
               key={id}

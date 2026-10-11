@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BallotMatch NC",
+  title: "Democratize — Find candidates who match your views",
   description:
-    "North Carolina midterm candidate matching with voice-enabled questionnaire and district maps.",
+    "Rate where you stand on key issues and see your % match with real North Carolina candidates on your ballot.",
 };
 
 export default function RootLayout({
@@ -15,16 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <div className="shell">
-          <nav className="site-nav">
-            <Link className="brand" href="/">
-              BallotMatch NC
-            </Link>
-          </nav>
-          {children}
-        </div>
-      </body>
+      <body className="map-texture min-h-screen">{children}</body>
     </html>
   );
 }
