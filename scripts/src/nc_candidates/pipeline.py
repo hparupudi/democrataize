@@ -101,23 +101,33 @@ def run(argv: Sequence[str] | None = None) -> int:
 
     logger.info("Processing %d candidates", len(candidates))
 
-    geocoder = enrich_with_geocoder(candidates, session=session)
-    boundaries = fetch_district_boundaries(candidates, session=session)
-    fec_ids, incumbency = resolve_incumbency(
-        candidates,
-        fec_api_key=settings.fec_api_key,
-        gemini_api_key=settings.gemini_api_key,
-        gemini_model=settings.gemini_model,
-        session=session,
-    )
+    # Districts/candidates already collected and stored — skip re-fetch / re-upsert.
+    # geocoder = enrich_with_geocoder(candidates, session=session)
+    # boundaries = fetch_district_boundaries(candidates, session=session)
+    # fec_ids, incumbency = resolve_incumbency(
+    #     candidates,
+    #     fec_api_key=settings.fec_api_key,
+    #     gemini_api_key=settings.gemini_api_key,
+    #     gemini_model=settings.gemini_model,
+    #     session=session,
+    # )
 
-    store.upsert_districts(boundaries)
+    # store.upsert_districts(boundaries)
 
     # Insert candidates before research/scores so foreign keys succeed.
-    photo_urls: dict[str, str | None] = {c.candidate_id: None for c in candidates}
-    store.upsert_candidates(
-        candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
+    # photo_urls: dict[str, str | None] = {c.candidate_id: None for c in candidates}
+    # store.upsert_candidates(
+    #     candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
+    # )
+
+    # Start research + scores at candidate 28 (1-based; first 27 already done).
+    candidates = candidates[27:]
+    logger.info(
+        "Research/score-only mode: starting at candidate 28 (%d remaining)",
+        len(candidates),
     )
+
+    photo_urls: dict[str, str | None] = {c.candidate_id: None for c in candidates}
 
     researcher = GeminiResearcher(settings.gemini_api_key, settings.gemini_model)
     evaluator = GeminiEvaluator(settings.gemini_api_key, settings.gemini_model)
@@ -127,13 +137,13 @@ def run(argv: Sequence[str] | None = None) -> int:
     skipped = 0
     failures = 0
 
-    for index, candidate in enumerate(candidates, start=1):
+    for index, candidate in enumerate(candidates, start=28):
         if candidate.candidate_id in already_scored:
             skipped += 1
             logger.info(
                 "[%d/%d] Skip (already finished) %s",
                 index,
-                len(candidates),
+                27 + len(candidates),
                 candidate.full_name,
             )
             continue
@@ -141,7 +151,7 @@ def run(argv: Sequence[str] | None = None) -> int:
         logger.info(
             "[%d/%d] Research + score %s",
             index,
-            len(candidates),
+            27 + len(candidates),
             candidate.full_name,
         )
         try:
@@ -171,9 +181,9 @@ def run(argv: Sequence[str] | None = None) -> int:
                 ) from exc
 
     # Persist photo URLs discovered during Gemini research.
-    store.upsert_candidates(
-        candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
-    )
+    # store.upsert_candidates(
+    #     candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
+    # )
     logger.info(
         "Pipeline finished: scored=%d insufficient=%d skipped=%d failures=%d total=%d",
         processed,
