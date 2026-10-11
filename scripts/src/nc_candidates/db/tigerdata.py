@@ -209,6 +209,21 @@ class TigerDataStore:
             )
             conn.commit()
 
+    def scored_candidate_ids(self, expected_issue_count: int = 9) -> set[str]:
+        """Return candidate IDs that already have a full set of issue scores."""
+        with self.connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT candidate_id
+                    FROM candidate_issue_scores
+                    GROUP BY candidate_id
+                    HAVING COUNT(*) >= %s
+                    """,
+                    (expected_issue_count,),
+                )
+                return {row["candidate_id"] for row in cur.fetchall()}
+
     def upsert_issue_scores(self, candidate_id: str, scores: list[dict[str, Any]]) -> None:
         sql = """
             INSERT INTO candidate_issue_scores (

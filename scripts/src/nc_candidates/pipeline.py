@@ -50,6 +50,22 @@ def build_parser() -> argparse.ArgumentParser:
         ],
         help="Restrict to one or more office types. Repeatable.",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Skip candidates that already have a full set of issue scores in "
+            "TigerData (safe after a crash)."
+        ),
+    )
+    parser.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help=(
+            "Stop the pipeline on the first research/score failure. "
+            "Default is to log the error and continue."
+        ),
+    )
     return parser
 
 
@@ -74,6 +90,14 @@ def run(argv: Sequence[str] | None = None) -> int:
             raise SystemExit("--limit must be a positive integer")
         candidates = candidates[: args.limit]
 
+    already_scored: set[str] = set()
+    if args.resume:
+        already_scored = store.scored_candidate_ids(expected_issue_count=len(questions))
+        logger.info(
+            "Resume mode: %d candidates already have full scores and will be skipped",
+            len(already_scored),
+        )
+
     logger.info("Processing %d candidates", len(candidates))
 
     geocoder = enrich_with_geocoder(candidates, session=session)
@@ -97,25 +121,58 @@ def run(argv: Sequence[str] | None = None) -> int:
     researcher = GeminiResearcher(settings.gemini_api_key, settings.gemini_model)
     evaluator = GeminiEvaluator(settings.gemini_api_key, settings.gemini_model)
 
+    processed = 0
+    skipped = 0
+    failures = 0
+
     for index, candidate in enumerate(candidates, start=1):
+        if candidate.candidate_id in already_scored:
+            skipped += 1
+            logger.info(
+                "[%d/%d] Skip (already scored) %s",
+                index,
+                len(candidates),
+                candidate.full_name,
+            )
+            continue
+
         logger.info(
             "[%d/%d] Research + score %s",
             index,
             len(candidates),
             candidate.full_name,
         )
-        research = researcher.research_candidate(candidate)
-        photo_urls[candidate.candidate_id] = research.get("photo_url")
-        store.upsert_research(candidate.candidate_id, research)
-        scores = evaluator.evaluate_candidate(candidate, research, questions)
-        store.upsert_issue_scores(candidate.candidate_id, scores)
+        try:
+            research = researcher.research_candidate(candidate)
+            photo_urls[candidate.candidate_id] = research.get("photo_url")
+            store.upsert_research(candidate.candidate_id, research)
+            scores = evaluator.evaluate_candidate(candidate, research, questions)
+            store.upsert_issue_scores(candidate.candidate_id, scores)
+            processed += 1
+        except Exception as exc:  # noqa: BLE001
+            failures += 1
+            logger.exception(
+                "Failed research/score for %s (%s)",
+                candidate.full_name,
+                candidate.candidate_id,
+            )
+            if args.fail_fast:
+                raise SystemExit(
+                    f"Pipeline stopped (--fail-fast) on {candidate.full_name}: {exc}"
+                ) from exc
 
     # Persist photo URLs discovered during Gemini research.
     store.upsert_candidates(
         candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
     )
-    logger.info("Pipeline finished successfully for %d candidates", len(candidates))
-    return 0
+    logger.info(
+        "Pipeline finished: processed=%d skipped=%d failures=%d total=%d",
+        processed,
+        skipped,
+        failures,
+        len(candidates),
+    )
+    return 1 if failures else 0
 
 
 def main() -> None:

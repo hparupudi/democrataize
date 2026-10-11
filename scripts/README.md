@@ -19,3 +19,13 @@ Useful filters:
 ```bash
 python run.py --office-type us_senate --limit 3
 ```
+
+After a crash (or to continue overnight), resume and skip anyone who already has a full set of issue scores:
+
+```bash
+git pull
+pip install -e .
+python run.py --resume
+```
+
+Gemini research/scoring retries empty or malformed responses. By default the pipeline logs a failure and continues; pass `--fail-fast` to stop on the first hard error.

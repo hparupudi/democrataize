@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from typing import Any
 
 from google import genai
 from google.genai import types
 
+from nc_candidates.gemini.response_text import extract_response_text
 from nc_candidates.sources.ncsbe import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -28,12 +30,26 @@ def _extract_json(text: str) -> dict[str, Any]:
         raise
 
 
+def _neutral_scores(questions: list[dict], reason: str) -> list[dict[str, Any]]:
+    return [
+        {
+            "issue_id": q["id"],
+            "issue_title": q["title"],
+            "score": 0,
+            "rationale": reason,
+            "evidence": [],
+        }
+        for q in questions
+    ]
+
+
 class GeminiEvaluator:
-    def __init__(self, api_key: str, model: str) -> None:
+    def __init__(self, api_key: str, model: str, max_attempts: int = 4) -> None:
         if not api_key or not api_key.strip():
             raise SystemExit("GEMINI_API_KEY is required and must not be empty.")
         self.client = genai.Client(api_key=api_key.strip())
         self.model = model
+        self.max_attempts = max_attempts
         self._search_tool = types.Tool(google_search=types.GoogleSearch())
 
     def evaluate_candidate(
@@ -97,49 +113,68 @@ Return ONLY valid JSON:
 Include exactly one score object for every issue id listed above.
 """
         logger.info("Gemini evaluation: %s", candidate.full_name)
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                tools=[self._search_tool],
-                temperature=0.1,
-            ),
-        )
-        text = (response.text or "").strip()
-        if not text:
-            raise RuntimeError(
-                f"Gemini returned empty evaluation response for {candidate.full_name}"
-            )
-        parsed = _extract_json(text)
-        scores = parsed.get("scores")
-        if not isinstance(scores, list):
-            raise RuntimeError(f"Invalid evaluation payload for {candidate.full_name}: {parsed}")
+        last_error: Exception | None = None
 
-        by_id = {item.get("issue_id"): item for item in scores if isinstance(item, dict)}
-        normalized: list[dict[str, Any]] = []
-        for q in questions:
-            item = by_id.get(q["id"])
-            if not item:
-                raise RuntimeError(
-                    f"Missing score for issue {q['id']} for candidate {candidate.full_name}"
-                )
+        for attempt in range(1, self.max_attempts + 1):
             try:
-                score = int(item["score"])
-            except (KeyError, TypeError, ValueError) as exc:
-                raise RuntimeError(
-                    f"Invalid score for {candidate.full_name} / {q['id']}: {item}"
-                ) from exc
-            if score < -2 or score > 2:
-                raise RuntimeError(
-                    f"Score out of range for {candidate.full_name} / {q['id']}: {score}"
+                use_search = attempt < self.max_attempts
+                response = self.client.models.generate_content(
+                    model=self.model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        tools=[self._search_tool] if use_search else None,
+                        temperature=0.1,
+                    ),
                 )
-            normalized.append(
-                {
-                    "issue_id": q["id"],
-                    "issue_title": q["title"],
-                    "score": score,
-                    "rationale": item.get("rationale") or "",
-                    "evidence": item.get("evidence") or [],
+                text = extract_response_text(response)
+                if not text:
+                    raise RuntimeError("empty response text")
+                parsed = _extract_json(text)
+                scores = parsed.get("scores")
+                if not isinstance(scores, list):
+                    raise RuntimeError(f"Invalid evaluation payload: {parsed}")
+
+                by_id = {
+                    item.get("issue_id"): item for item in scores if isinstance(item, dict)
                 }
-            )
-        return normalized
+                normalized: list[dict[str, Any]] = []
+                for q in questions:
+                    item = by_id.get(q["id"])
+                    if not item:
+                        raise RuntimeError(f"Missing score for issue {q['id']}")
+                    score = int(item["score"])
+                    if score < -2 or score > 2:
+                        raise RuntimeError(f"Score out of range for {q['id']}: {score}")
+                    normalized.append(
+                        {
+                            "issue_id": q["id"],
+                            "issue_title": q["title"],
+                            "score": score,
+                            "rationale": item.get("rationale") or "",
+                            "evidence": item.get("evidence") or [],
+                        }
+                    )
+                return normalized
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                wait = min(2**attempt, 20)
+                logger.warning(
+                    "Evaluation attempt %d/%d failed for %s: %s (retry in %ss)",
+                    attempt,
+                    self.max_attempts,
+                    candidate.full_name,
+                    exc,
+                    wait,
+                )
+                time.sleep(wait)
+
+        logger.error(
+            "Evaluation failed for %s after %d attempts (%s); storing neutral scores",
+            candidate.full_name,
+            self.max_attempts,
+            last_error,
+        )
+        return _neutral_scores(
+            questions,
+            f"Insufficient usable Gemini output after retries ({last_error}).",
+        )
