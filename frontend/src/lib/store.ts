@@ -79,13 +79,12 @@ type AppState = {
 };
 
 const initialRanks = QUESTIONS.map((q) => q.id);
-const STORAGE_KEY = "nc-ballot-match";
+const STORAGE_KEY = "nc-ballot-match-v2";
 
-// Drop any previously persisted payload that included district GeoJSON
-// (that blew past localStorage quota when viewing matches).
+// Free quota taken by the legacy key that persisted full race GeoJSON.
 if (typeof window !== "undefined") {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem("nc-ballot-match");
   } catch {
     // ignore quota / privacy-mode failures
   }
