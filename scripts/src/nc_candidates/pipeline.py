@@ -121,11 +121,42 @@ def run(argv: Sequence[str] | None = None) -> int:
     # )
 
     # Start research + scores at candidate 28 (1-based; first 27 already done).
-    candidates = candidates[27:]
+    # candidates = candidates[27:]
+    # logger.info(
+    #     "Research/score-only mode: starting at candidate 28 (%d remaining)",
+    #     len(candidates),
+    # )
+
+    # UNC Chapel Hill area (250 E Franklin St geocode) + NC statewide races only.
+    # US House 4, NC Senate 23, NC House 56, plus US Senate / statewide judicial.
+    chapel_hill_district_keys = {
+        "nc:us_house:04",
+        "nc:nc_senate:023",
+        "nc:nc_house:056",
+    }
+    statewide_office_types = {
+        "us_senate",
+        "statewide_executive",
+        "statewide_judicial",
+    }
+    candidates = [
+        c
+        for c in candidates
+        if c.district_key in chapel_hill_district_keys
+        or c.office_type in statewide_office_types
+    ]
     logger.info(
-        "Research/score-only mode: starting at candidate 28 (%d remaining)",
+        "Research/score-only mode: UNC Chapel Hill districts + statewide "
+        "(%d candidates)",
         len(candidates),
     )
+    for c in candidates:
+        logger.info(
+            "  queued: %s | %s | %s",
+            c.full_name,
+            c.contest_name,
+            c.district_key,
+        )
 
     photo_urls: dict[str, str | None] = {c.candidate_id: None for c in candidates}
 
@@ -137,13 +168,13 @@ def run(argv: Sequence[str] | None = None) -> int:
     skipped = 0
     failures = 0
 
-    for index, candidate in enumerate(candidates, start=28):
+    for index, candidate in enumerate(candidates, start=1):
         if candidate.candidate_id in already_scored:
             skipped += 1
             logger.info(
                 "[%d/%d] Skip (already finished) %s",
                 index,
-                27 + len(candidates),
+                len(candidates),
                 candidate.full_name,
             )
             continue
@@ -151,7 +182,7 @@ def run(argv: Sequence[str] | None = None) -> int:
         logger.info(
             "[%d/%d] Research + score %s",
             index,
-            27 + len(candidates),
+            len(candidates),
             candidate.full_name,
         )
         try:
