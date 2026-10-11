@@ -79,6 +79,17 @@ type AppState = {
 };
 
 const initialRanks = QUESTIONS.map((q) => q.id);
+const STORAGE_KEY = "nc-ballot-match";
+
+// Drop any previously persisted payload that included district GeoJSON
+// (that blew past localStorage quota when viewing matches).
+if (typeof window !== "undefined") {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore quota / privacy-mode failures
+  }
+}
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -109,6 +120,15 @@ export const useAppStore = create<AppState>()(
           races: [],
         }),
     }),
-    { name: "nc-ballot-match" },
+    {
+      name: STORAGE_KEY,
+      // Persist only lightweight wizard state. Races include GeoJSON + research
+      // and must stay in memory for the session only.
+      partialize: (state) => ({
+        answers: state.answers,
+        issueRanks: state.issueRanks,
+        address: state.address,
+      }),
+    },
   ),
 );
