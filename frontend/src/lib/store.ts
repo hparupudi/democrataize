@@ -45,7 +45,8 @@ export type CandidateView = {
     string,
     { score: number; rationale: string | null; title: string }
   >;
-  matchPercent: number;
+  matchPercent: number | null;
+  insufficientInformation: boolean;
   boundaryGeojson: FeatureCollection | null;
 };
 

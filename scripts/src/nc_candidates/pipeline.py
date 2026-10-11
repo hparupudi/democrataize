@@ -77,6 +77,7 @@ def run(argv: Sequence[str] | None = None) -> int:
     questions = load_questionnaire()
     store = TigerDataStore(settings.tigerdata_database_url)
     store.apply_schema()
+    store.clear_fallback_neutral_scores()
 
     session = requests.Session()
     session.headers.update({"User-Agent": "nc-candidates-pipeline/1.0"})
@@ -122,6 +123,7 @@ def run(argv: Sequence[str] | None = None) -> int:
     evaluator = GeminiEvaluator(settings.gemini_api_key, settings.gemini_model)
 
     processed = 0
+    insufficient = 0
     skipped = 0
     failures = 0
 
@@ -129,7 +131,7 @@ def run(argv: Sequence[str] | None = None) -> int:
         if candidate.candidate_id in already_scored:
             skipped += 1
             logger.info(
-                "[%d/%d] Skip (already scored) %s",
+                "[%d/%d] Skip (already finished) %s",
                 index,
                 len(candidates),
                 candidate.full_name,
@@ -148,7 +150,14 @@ def run(argv: Sequence[str] | None = None) -> int:
             store.upsert_research(candidate.candidate_id, research)
             scores = evaluator.evaluate_candidate(candidate, research, questions)
             store.upsert_issue_scores(candidate.candidate_id, scores)
-            processed += 1
+            if scores:
+                processed += 1
+            else:
+                insufficient += 1
+                logger.warning(
+                    "No issue scores stored for %s (insufficient candidate information)",
+                    candidate.full_name,
+                )
         except Exception as exc:  # noqa: BLE001
             failures += 1
             logger.exception(
@@ -166,8 +175,9 @@ def run(argv: Sequence[str] | None = None) -> int:
         candidates, geocoder, fec_ids, photo_urls, incumbency=incumbency
     )
     logger.info(
-        "Pipeline finished: processed=%d skipped=%d failures=%d total=%d",
+        "Pipeline finished: scored=%d insufficient=%d skipped=%d failures=%d total=%d",
         processed,
+        insufficient,
         skipped,
         failures,
         len(candidates),

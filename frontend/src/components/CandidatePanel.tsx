@@ -22,6 +22,10 @@ export function CandidatePanel({
   } | null>(null);
   const [loadingExplain, setLoadingExplain] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const insufficient =
+    candidate.insufficientInformation ||
+    candidate.matchPercent === null ||
+    Object.keys(candidate.scores).length === 0;
 
   async function loadExplain() {
     setLoadingExplain(true);
@@ -80,91 +84,102 @@ export function CandidatePanel({
             </p>
           </div>
         </div>
-        <MatchBar percent={candidate.matchPercent} />
+        {insufficient ? (
+          <p className="insufficient-note">
+            Insufficient candidate information
+          </p>
+        ) : (
+          <MatchBar percent={candidate.matchPercent ?? 0} />
+        )}
       </header>
 
-      <button
-        type="button"
-        className="dropdown-toggle"
-        onClick={() => setOpen((v) => !v)}
-      >
-        Compare stances
-        <ChevronDown className={open ? "rotated" : ""} size={18} />
-      </button>
-
-      {open ? (
-        <div className="stance-panel">
-          {QUESTIONS.map((q) => {
-            const u = userScores[q.id] ?? 0;
-            const c = candidate.scores[q.id] ?? 0;
-            return (
-              <div key={q.id} className="stance-row">
-                <div className="stance-title">{q.title}</div>
-                <div className="stance-scale">
-                  <span className="side-label">A</span>
-                  <div className="scale-track">
-                    <span
-                      className="dot you"
-                      style={{ left: `${((u + 2) / 4) * 100}%` }}
-                      title={`You: ${scoreLabel(u)} (${u})`}
-                    />
-                    <span
-                      className="dot them"
-                      style={{ left: `${((c + 2) / 4) * 100}%` }}
-                      title={`${candidate.nameOnBallot}: ${scoreLabel(c)} (${c})`}
-                    />
-                  </div>
-                  <span className="side-label">B</span>
-                </div>
-                <div className="stance-meta">
-                  You {u >= 0 ? `+${u}` : u} · Candidate {c >= 0 ? `+${c}` : c}
-                </div>
-              </div>
-            );
-          })}
-
+      {insufficient ? null : (
+        <>
           <button
             type="button"
-            className="btn secondary"
-            onClick={loadExplain}
-            disabled={loadingExplain}
+            className="dropdown-toggle"
+            onClick={() => setOpen((v) => !v)}
           >
-            {loadingExplain ? (
-              <Loader2 className="spin" size={16} />
-            ) : null}
-            AI explanation of similarities & differences
+            Compare stances
+            <ChevronDown className={open ? "rotated" : ""} size={18} />
           </button>
-          {error ? <p className="error-text">{error}</p> : null}
-          {explain ? (
-            <div className="explain-box">
-              <p>{explain.summary}</p>
-              <h5>Similarities</h5>
-              <ul>
-                {explain.similarities?.map((s) => (
-                  <li key={s}>{s}</li>
-                ))}
-              </ul>
-              <h5>Differences</h5>
-              <ul>
-                {explain.differences?.map((s) => (
-                  <li key={s}>{s}</li>
-                ))}
-              </ul>
+
+          {open ? (
+            <div className="stance-panel">
+              {QUESTIONS.map((q) => {
+                const u = userScores[q.id] ?? 0;
+                const c = candidate.scores[q.id] ?? 0;
+                return (
+                  <div key={q.id} className="stance-row">
+                    <div className="stance-title">{q.title}</div>
+                    <div className="stance-scale">
+                      <span className="side-label">A</span>
+                      <div className="scale-track">
+                        <span
+                          className="dot you"
+                          style={{ left: `${((u + 2) / 4) * 100}%` }}
+                          title={`You: ${scoreLabel(u)} (${u})`}
+                        />
+                        <span
+                          className="dot them"
+                          style={{ left: `${((c + 2) / 4) * 100}%` }}
+                          title={`${candidate.nameOnBallot}: ${scoreLabel(c)} (${c})`}
+                        />
+                      </div>
+                      <span className="side-label">B</span>
+                    </div>
+                    <div className="stance-meta">
+                      You {u >= 0 ? `+${u}` : u} · Candidate{" "}
+                      {c >= 0 ? `+${c}` : c}
+                    </div>
+                  </div>
+                );
+              })}
+
               <button
                 type="button"
-                className="btn ghost"
-                onClick={() =>
-                  playTts(
-                    `${explain.summary} Similarities: ${explain.similarities?.join(". ")}. Differences: ${explain.differences?.join(". ")}`,
-                  )
-                }
+                className="btn secondary"
+                onClick={loadExplain}
+                disabled={loadingExplain}
               >
-                Read explanation aloud
+                {loadingExplain ? (
+                  <Loader2 className="spin" size={16} />
+                ) : null}
+                AI explanation of similarities & differences
               </button>
+              {error ? <p className="error-text">{error}</p> : null}
+              {explain ? (
+                <div className="explain-box">
+                  <p>{explain.summary}</p>
+                  <h5>Similarities</h5>
+                  <ul>
+                    {explain.similarities?.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                  <h5>Differences</h5>
+                  <ul>
+                    {explain.differences?.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() =>
+                      playTts(
+                        `${explain.summary} Similarities: ${explain.similarities?.join(". ")}. Differences: ${explain.differences?.join(". ")}`,
+                      )
+                    }
+                  >
+                    Read explanation aloud
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : null}
-        </div>
-      ) : null}
+        </>
+      )}
 
       <details className="grassroots">
         <summary>

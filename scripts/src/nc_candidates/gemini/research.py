@@ -170,6 +170,7 @@ If little public information exists, still return the JSON object with nulls/emp
             last_error,
         )
         empty = dict(EMPTY_RESEARCH)
+        empty["_insufficient"] = True
         empty["_raw_text"] = (
             f"empty_or_failed_research: {candidate.full_name}; last_error={last_error}"
         )

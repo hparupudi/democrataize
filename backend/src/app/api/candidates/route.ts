@@ -26,6 +26,7 @@ type CandidateRow = {
   is_incumbent: boolean | null;
   incumbency_status: string | null;
   incumbency_source: string | null;
+  scoring_status: string | null;
   research_photo: string | null;
   campaign_platform: Record<string, unknown> | null;
   social_media_posts: { platform?: string; url?: string }[] | null;
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
         c.is_incumbent,
         c.incumbency_status,
         c.incumbency_source,
+        c.scoring_status,
         r.photo_url AS research_photo,
         r.campaign_platform,
         r.social_media_posts,
@@ -170,11 +172,12 @@ export async function POST(request: Request) {
         };
       }
 
-      const matchPercent = computeMatchPercent(
-        userScores,
-        scoreMap,
-        issueRanks,
-      );
+      const insufficientInformation =
+        c.scoring_status === "insufficient" || scoreRows.length === 0;
+
+      const matchPercent = insufficientInformation
+        ? null
+        : computeMatchPercent(userScores, scoreMap, issueRanks);
 
       const platform = c.campaign_platform || {};
       const website =
@@ -215,9 +218,10 @@ export async function POST(request: Request) {
             status: bill.status || null,
             summary: bill.summary || null,
           })),
-        scores: scoreMap,
-        scoreDetails,
+        scores: insufficientInformation ? {} : scoreMap,
+        scoreDetails: insufficientInformation ? {} : scoreDetails,
         matchPercent,
+        insufficientInformation,
         boundaryGeojson: c.boundary_geojson,
       };
 
@@ -240,11 +244,14 @@ export async function POST(request: Request) {
     const races = Array.from(raceMap.values())
       .map((race) => ({
         ...race,
-        candidates: [...race.candidates].sort(
-          (a, b) =>
-            (b as { matchPercent: number }).matchPercent -
-            (a as { matchPercent: number }).matchPercent,
-        ),
+        candidates: [...race.candidates].sort((a, b) => {
+          const aMatch = (a as { matchPercent: number | null }).matchPercent;
+          const bMatch = (b as { matchPercent: number | null }).matchPercent;
+          if (aMatch === null && bMatch === null) return 0;
+          if (aMatch === null) return 1;
+          if (bMatch === null) return -1;
+          return bMatch - aMatch;
+        }),
       }))
       .sort((a, b) => {
         const jr = jurisdictionRank(a.officeType) - jurisdictionRank(b.officeType);

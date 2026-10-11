@@ -9,10 +9,23 @@ from typing import Any
 from google import genai
 from google.genai import types
 
+from nc_candidates.gemini.research_quality import research_has_usable_data
 from nc_candidates.gemini.response_text import extract_response_text
 from nc_candidates.sources.ncsbe import CandidateRecord
 
 logger = logging.getLogger(__name__)
+
+_INSUFFICIENT_HINTS = (
+    "insufficient",
+    "no evidence",
+    "not enough evidence",
+    "unclear",
+    "no attributable",
+    "could not find",
+    "unable to find",
+    "no public",
+    "no usable",
+)
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -30,17 +43,25 @@ def _extract_json(text: str) -> dict[str, Any]:
         raise
 
 
-def _neutral_scores(questions: list[dict], reason: str) -> list[dict[str, Any]]:
-    return [
-        {
-            "issue_id": q["id"],
-            "issue_title": q["title"],
-            "score": 0,
-            "rationale": reason,
-            "evidence": [],
-        }
-        for q in questions
-    ]
+def _looks_insufficient_rationale(text: str) -> bool:
+    lowered = text.lower()
+    return any(hint in lowered for hint in _INSUFFICIENT_HINTS)
+
+
+def _all_scores_lack_evidence(scores: list[dict[str, Any]]) -> bool:
+    if not scores:
+        return True
+    for item in scores:
+        score = int(item["score"])
+        evidence = item.get("evidence") or []
+        rationale = str(item.get("rationale") or "")
+        if score != 0:
+            return False
+        if evidence:
+            return False
+        if rationale and not _looks_insufficient_rationale(rationale):
+            return False
+    return True
 
 
 class GeminiEvaluator:
@@ -58,6 +79,13 @@ class GeminiEvaluator:
         research: dict[str, Any],
         questions: list[dict],
     ) -> list[dict[str, Any]]:
+        if not research_has_usable_data(research):
+            logger.warning(
+                "Skipping scores for %s: research packet has no usable data",
+                candidate.full_name,
+            )
+            return []
+
         question_block = []
         for q in questions:
             question_block.append(
@@ -76,8 +104,20 @@ Evaluate this North Carolina candidate on each political issue below.
 Use the Google Search tool plus the research packet. Base scores only on evidence
 from their social posts, campaign platform, introduced/sponsored legislation,
 speeches, voting record, or other attributable public statements. Do not use
-Wikipedia. If evidence is insufficient for an issue, score 0 (Neutral) and say so
-in the rationale.
+Wikipedia.
+
+If you cannot find enough attributable public information to score ANY issue
+with confidence, return:
+{{
+  "insufficient_information": true,
+  "scores": []
+}}
+Do not invent positions. Do not fill the scale with neutrals when evidence is
+missing across the board.
+
+If some issues have evidence and others do not:
+- score evidenced issues normally
+- for issues without evidence, use score 0 and say so in the rationale
 
 Scoring scale (integer only):
 -2 = strongly support Side A
@@ -98,8 +138,14 @@ Research packet:
 Issues:
 {chr(10).join(question_block)}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON in one of these shapes:
 {{
+  "insufficient_information": true,
+  "scores": []
+}}
+or
+{{
+  "insufficient_information": false,
   "scores": [
     {{
       "issue_id": "...",
@@ -110,7 +156,8 @@ Return ONLY valid JSON:
     }}
   ]
 }}
-Include exactly one score object for every issue id listed above.
+When insufficient_information is false, include exactly one score object for
+every issue id listed above.
 """
         logger.info("Gemini evaluation: %s", candidate.full_name)
         last_error: Exception | None = None
@@ -130,9 +177,22 @@ Include exactly one score object for every issue id listed above.
                 if not text:
                     raise RuntimeError("empty response text")
                 parsed = _extract_json(text)
+                if parsed.get("insufficient_information") is True:
+                    logger.warning(
+                        "Gemini reported insufficient information for %s; storing no scores",
+                        candidate.full_name,
+                    )
+                    return []
+
                 scores = parsed.get("scores")
                 if not isinstance(scores, list):
                     raise RuntimeError(f"Invalid evaluation payload: {parsed}")
+                if len(scores) == 0:
+                    logger.warning(
+                        "Gemini returned empty scores for %s; storing no scores",
+                        candidate.full_name,
+                    )
+                    return []
 
                 by_id = {
                     item.get("issue_id"): item for item in scores if isinstance(item, dict)
@@ -154,6 +214,13 @@ Include exactly one score object for every issue id listed above.
                             "evidence": item.get("evidence") or [],
                         }
                     )
+
+                if _all_scores_lack_evidence(normalized):
+                    logger.warning(
+                        "All scores for %s lack usable evidence; storing no scores",
+                        candidate.full_name,
+                    )
+                    return []
                 return normalized
             except Exception as exc:  # noqa: BLE001
                 last_error = exc
@@ -169,12 +236,9 @@ Include exactly one score object for every issue id listed above.
                 time.sleep(wait)
 
         logger.error(
-            "Evaluation failed for %s after %d attempts (%s); storing neutral scores",
+            "Evaluation failed for %s after %d attempts (%s); storing no scores",
             candidate.full_name,
             self.max_attempts,
             last_error,
         )
-        return _neutral_scores(
-            questions,
-            f"Insufficient usable Gemini output after retries ({last_error}).",
-        )
+        return []

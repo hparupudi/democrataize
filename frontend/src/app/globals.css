@@ -430,6 +430,21 @@ textarea {
   text-align: right;
 }
 
+.insufficient-note {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 74, 36, 0.22);
+  background: rgba(196, 138, 74, 0.12);
+  color: #6b4423;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.insufficient-note.race-level {
+  margin-bottom: 0.35rem;
+}
+
 .dropdown-toggle {
   margin-top: 0.85rem;
   width: 100%;

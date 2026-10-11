@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     incumbency_status TEXT,
     incumbency_source TEXT,
     incumbency_detail TEXT,
+    scoring_status TEXT,
     source_row JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -48,6 +49,7 @@ ALTER TABLE candidates ADD COLUMN IF NOT EXISTS is_incumbent BOOLEAN;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS incumbency_status TEXT;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS incumbency_source TEXT;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS incumbency_detail TEXT;
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS scoring_status TEXT;
 
 CREATE TABLE IF NOT EXISTS candidate_research (
     candidate_id TEXT PRIMARY KEY REFERENCES candidates (candidate_id) ON DELETE CASCADE,

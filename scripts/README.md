@@ -28,4 +28,4 @@ pip install -e .
 python run.py --resume
 ```
 
-Gemini research/scoring retries empty or malformed responses. By default the pipeline logs a failure and continues; pass `--fail-fast` to stop on the first hard error.
+Gemini research/scoring retries empty or malformed responses. If Gemini cannot find usable public data for a candidate, **no issue scores are stored** and the candidate is marked `scoring_status=insufficient` (the website shows “Insufficient candidate information”). By default the pipeline logs a failure and continues; pass `--fail-fast` to stop on the first hard error.

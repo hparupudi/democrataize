@@ -210,7 +210,7 @@ class TigerDataStore:
             conn.commit()
 
     def scored_candidate_ids(self, expected_issue_count: int = 9) -> set[str]:
-        """Return candidate IDs that already have a full set of issue scores."""
+        """Return candidate IDs finished for resume (full scores or insufficient)."""
         with self.connect() as conn:
             with conn.cursor() as cur:
                 cur.execute(
@@ -222,9 +222,59 @@ class TigerDataStore:
                     """,
                     (expected_issue_count,),
                 )
-                return {row["candidate_id"] for row in cur.fetchall()}
+                done = {row["candidate_id"] for row in cur.fetchall()}
+                cur.execute(
+                    """
+                    SELECT candidate_id
+                    FROM candidates
+                    WHERE scoring_status = 'insufficient'
+                    """
+                )
+                done.update(row["candidate_id"] for row in cur.fetchall())
+                return done
+
+    def set_scoring_status(self, candidate_id: str, status: str | None) -> None:
+        with self.connect() as conn:
+            conn.execute(
+                """
+                UPDATE candidates
+                SET scoring_status = %s, updated_at = NOW()
+                WHERE candidate_id = %s
+                """,
+                (status, candidate_id),
+            )
+            conn.commit()
+
+    def delete_issue_scores(self, candidate_id: str) -> None:
+        with self.connect() as conn:
+            conn.execute(
+                "DELETE FROM candidate_issue_scores WHERE candidate_id = %s",
+                (candidate_id,),
+            )
+            conn.commit()
+
+    def clear_fallback_neutral_scores(self) -> int:
+        """Remove legacy all-neutral rows written when Gemini evaluation failed."""
+        with self.connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    DELETE FROM candidate_issue_scores
+                    WHERE rationale LIKE 'Insufficient usable Gemini output%'
+                    """
+                )
+                removed = cur.rowcount
+            conn.commit()
+        if removed:
+            logger.info("Cleared %d legacy fallback neutral score rows", removed)
+        return removed
 
     def upsert_issue_scores(self, candidate_id: str, scores: list[dict[str, Any]]) -> None:
+        if not scores:
+            self.delete_issue_scores(candidate_id)
+            self.set_scoring_status(candidate_id, "insufficient")
+            return
+
         sql = """
             INSERT INTO candidate_issue_scores (
                 candidate_id, issue_id, issue_title, score, rationale, evidence, evaluated_at
@@ -253,6 +303,14 @@ class TigerDataStore:
                             "evidence": json.dumps(score.get("evidence") or []),
                         },
                     )
+                cur.execute(
+                    """
+                    UPDATE candidates
+                    SET scoring_status = 'scored', updated_at = NOW()
+                    WHERE candidate_id = %s
+                    """,
+                    (candidate_id,),
+                )
             conn.commit()
 
 

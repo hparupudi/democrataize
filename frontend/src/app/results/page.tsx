@@ -50,7 +50,12 @@ export default function ResultsPage() {
       <div className="results-layout">
         <section className="race-list">
           {races.map((race, idx) => {
-            const top = race.candidates[0];
+            const scored = race.candidates.filter(
+              (c) => !c.insufficientInformation && c.matchPercent !== null,
+            );
+            const top = scored[0];
+            const allInsufficient =
+              race.candidates.length > 0 && scored.length === 0;
             return (
               <div key={race.contestName}>
                 <button
@@ -62,13 +67,20 @@ export default function ResultsPage() {
                   <p>
                     {officeLabel(race.officeType)}
                     {race.districtLabel ? ` · ${race.districtLabel}` : ""}
-                    {top
-                      ? ` · top match ${top.matchPercent.toFixed(1)}% (${top.nameOnBallot})`
-                      : ""}
+                    {allInsufficient
+                      ? " · insufficient candidate information"
+                      : top
+                        ? ` · top match ${top.matchPercent!.toFixed(1)}% (${top.nameOnBallot})`
+                        : ""}
                   </p>
                 </button>
                 {idx === selected ? (
                   <div className="panel" style={{ marginTop: "0.65rem" }}>
+                    {allInsufficient ? (
+                      <p className="insufficient-note race-level">
+                        Insufficient candidate information
+                      </p>
+                    ) : null}
                     {race.candidates.map((c) => (
                       <CandidatePanel
                         key={c.candidateId}
