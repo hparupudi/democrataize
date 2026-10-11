@@ -129,6 +129,7 @@ def run(argv: Sequence[str] | None = None) -> int:
 
     # UNC Chapel Hill area (250 E Franklin St geocode) + NC statewide races only.
     # US House 4, NC Senate 23, NC House 56, plus US Senate / statewide judicial.
+    # Candidates 1–57 (inclusive) are already covered — exclude that prefix.
     chapel_hill_district_keys = {
         "nc:us_house:04",
         "nc:nc_senate:023",
@@ -139,15 +140,19 @@ def run(argv: Sequence[str] | None = None) -> int:
         "statewide_executive",
         "statewide_judicial",
     }
+    already_covered_ids = {c.candidate_id for c in candidates[:57]}
     candidates = [
         c
         for c in candidates
-        if c.district_key in chapel_hill_district_keys
-        or c.office_type in statewide_office_types
+        if (
+            c.district_key in chapel_hill_district_keys
+            or c.office_type in statewide_office_types
+        )
+        and c.candidate_id not in already_covered_ids
     ]
     logger.info(
-        "Research/score-only mode: UNC Chapel Hill districts + statewide "
-        "(%d candidates)",
+        "Research/score-only mode: UNC Chapel Hill districts + statewide, "
+        "excluding candidates 1–57 (%d new candidates)",
         len(candidates),
     )
     for c in candidates:
