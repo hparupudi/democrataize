@@ -11,7 +11,6 @@ export type AnswerRecord = {
   strength?: "strong" | "somewhat";
   customText?: string;
   score: number;
-  spokenTranscript?: string;
 };
 
 export type CandidateView = {

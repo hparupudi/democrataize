@@ -6,7 +6,7 @@ North Carolina midterm candidate matching, with a frontend styled after
 | Folder | Role |
 | --- | --- |
 | [`scripts/`](scripts/) | Python pipeline: NCSBE + GeoCoder + TIGER boundaries + FEC/Gemini incumbency + Gemini research/scoring → TigerData |
-| [`backend/`](backend/) | Next.js API: ElevenLabs TTS/STT, Gemini scoring/explanations, TigerData candidate lookup |
+| [`backend/`](backend/) | Next.js API: Gemini scoring/explanations, TigerData candidate lookup |
 | [`frontend/`](frontend/) | Next.js UI (Democratize design): issues → priorities → address → matches + map |
 
 ## Quick start
@@ -48,6 +48,4 @@ Open http://localhost:3847
 | `GEMINI_API_KEY` | ✓ | ✓ | |
 | `TIGERDATA_DATABASE_URL` | ✓ | ✓ | |
 | `FEC_API_KEY` | ✓ | | |
-| `ELEVENLABS_API_KEY` | | ✓ | |
-| `ELEVENLABS_VOICE_ID` | | ✓ | |
 | `BACKEND_URL` (optional) | | | ✓ |

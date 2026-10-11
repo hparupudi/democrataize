@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -12,7 +12,6 @@ import { QUESTIONS } from "@/lib/questionnaire";
 import { useAppStore, type AnswerRecord } from "@/lib/store";
 import { HeroMap } from "@/components/civic";
 import { SiteFooter, StepNav } from "@/components/StepNav";
-import { VoiceControls, playTts } from "@/components/VoiceControls";
 
 const SCALE = [
   { v: -2, l: "Strongly A" },
@@ -53,12 +52,6 @@ export default function QuestionnairePage() {
       (answers[i.id] !== OTHER || (others[i.id] ?? "").trim()),
   );
 
-  const speakText = useMemo(
-    () =>
-      `There are ${QUESTIONS.length} issues. For each, choose Strongly Side A through Strongly Side B, Neutral, or write your own position.`,
-    [],
-  );
-
   async function continueNext() {
     if (!done) return;
     setBusy(true);
@@ -96,10 +89,8 @@ export default function QuestionnairePage() {
           strength,
           customText,
           score: score === OTHER ? 0 : score,
-          spokenTranscript: customText || String(score),
         });
       }
-      await playTts("Positions saved. Next, rank your priorities.");
       router.push("/rank");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save answers");
@@ -146,17 +137,6 @@ export default function QuestionnairePage() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
-        <div className="mb-6">
-          <VoiceControls
-            speakText={speakText}
-            onTranscript={(t) => {
-              // Voice can fill the first unanswered custom box if needed.
-              const open = QUESTIONS.find((q) => answers[q.id] === OTHER);
-              if (open) setOthers({ ...others, [open.id]: t });
-            }}
-          />
-        </div>
-
         <div className="space-y-6">
           <div className="sticky top-[61px] z-20 -mx-1 rounded-2xl border bg-card/90 px-4 py-3 shadow-[var(--shadow-card)] backdrop-blur-md">
             <div className="flex items-center justify-between text-xs font-semibold">

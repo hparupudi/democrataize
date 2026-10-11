@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pg", "@elevenlabs/elevenlabs-js"],
+  serverExternalPackages: ["pg"],
 };
 
 export default nextConfig;

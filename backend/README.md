@@ -1,6 +1,6 @@
-# BallotMatch NC backend
+# Democratize backend
 
-Next.js API server for voice, scoring, candidate lookup, and explanations.
+Next.js API server for scoring, candidate lookup, and explanations.
 
 ```bash
 cd backend
@@ -9,6 +9,6 @@ npm install
 npm run dev    # http://localhost:3848
 ```
 
-Required env: `GEMINI_API_KEY`, `TIGERDATA_DATABASE_URL`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`.
+Required env: `GEMINI_API_KEY`, `TIGERDATA_DATABASE_URL`.
 
-Routes: `/api/tts`, `/api/stt`, `/api/score-custom`, `/api/candidates`, `/api/explain`.
+Routes: `/api/score-custom`, `/api/candidates`, `/api/explain`.

@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { IssueCompare, MatchRing } from "./civic";
 import type { CandidateView } from "@/lib/store";
-import { playTts } from "./VoiceControls";
 
 export function CandidatePanel({
   candidate,
@@ -133,17 +132,6 @@ export function CandidatePanel({
                       <li key={s}>{s}</li>
                     ))}
                   </ul>
-                  <button
-                    type="button"
-                    className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary"
-                    onClick={() =>
-                      playTts(
-                        `${explain.summary} Similarities: ${explain.similarities?.join(". ")}. Differences: ${explain.differences?.join(". ")}`,
-                      )
-                    }
-                  >
-                    Read explanation aloud
-                  </button>
                 </div>
               ) : null}
             </div>
