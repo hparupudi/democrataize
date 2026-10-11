@@ -69,7 +69,7 @@ def load_settings() -> Settings:
 
     model = os.environ.get("GEMINI_MODEL", "").strip()
     if not model:
-        model = "gemini-2.5-flash"
+        model = "gemini-3.8-flash"
 
     return Settings(
         gemini_api_key=_require_env("GEMINI_API_KEY"),

@@ -34,7 +34,7 @@ export function requireElevenLabsKey(): string {
 }
 
 export function geminiModel(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  return process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
 }
 
 export function elevenLabsVoiceId(): string {
