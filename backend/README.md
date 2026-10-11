@@ -1,4 +1,4 @@
-# Democratize backend
+# DemocratAIze backend
 
 Next.js API server for scoring, candidate lookup, and explanations.
 

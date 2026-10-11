@@ -1,4 +1,4 @@
-# BallotMatch NC frontend
+# DemocratAIze frontend
 
 Voter UI (questionnaire, ranking, results map). Proxies `/api/*` to the backend.
 

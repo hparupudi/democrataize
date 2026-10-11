@@ -1,4 +1,4 @@
-# Democratize (NC)
+# DemocratAIze (NC)
 
 North Carolina midterm candidate matching, with a frontend styled after
 [hparupudi/democrataize](https://github.com/hparupudi/democrataize).
@@ -7,7 +7,7 @@ North Carolina midterm candidate matching, with a frontend styled after
 | --- | --- |
 | [`scripts/`](scripts/) | Python pipeline: NCSBE + GeoCoder + TIGER boundaries + FEC/Gemini incumbency + Gemini research/scoring → TigerData |
 | [`backend/`](backend/) | Next.js API: Gemini scoring/explanations, TigerData candidate lookup |
-| [`frontend/`](frontend/) | Next.js UI (Democratize design): issues → priorities → address → matches + map |
+| [`frontend/`](frontend/) | Next.js UI (DemocratAIze design): issues → priorities → address → matches + map |
 
 ## Quick start
 

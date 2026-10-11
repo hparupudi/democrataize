@@ -16,9 +16,9 @@ export function StepNav({ stepIndex }: { stepIndex: number }) {
       <div className="stripe-band h-1" />
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
         <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <LogoMark />
+          <LogoMark size={40} />
           <span className="font-display text-xl font-bold text-primary">
-            Democratize
+            DemocratAIze
           </span>
         </Link>
         <ol className="flex items-center gap-1 text-xs font-semibold sm:gap-2">
@@ -63,7 +63,7 @@ export function SiteFooter() {
       <div className="stripe-band h-1" />
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-xs opacity-90">
         <span className="flex items-center gap-2">
-          <b className="font-display text-base">Democratize</b> — Nonpartisan.
+          <b className="font-display text-base">DemocratAIze</b> — Nonpartisan.
           Not affiliated with any campaign or party.
         </span>
         <span>North Carolina · Primary sources only.</span>

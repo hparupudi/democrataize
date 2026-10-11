@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Democratize — Find candidates who match your views",
+  title: "DemocratAIze — Find candidates who match your views",
   description:
     "Rate where you stand on key issues and see your % match with real North Carolina candidates on your ballot.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

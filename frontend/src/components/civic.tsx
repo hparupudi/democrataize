@@ -3,12 +3,17 @@
 import { MapPin } from "lucide-react";
 import { QUESTIONS } from "@/lib/questionnaire";
 
-export function LogoMark() {
+export function LogoMark({ size = 36 }: { size?: number }) {
   return (
-    <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-card)]">
-      <MapPin className="h-5 w-5" strokeWidth={2.2} />
-      <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-highlight ring-2 ring-background" />
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="DemocratAIze"
+      width={size}
+      height={size}
+      className="shrink-0 object-contain"
+      style={{ width: size, height: size }}
+    />
   );
 }
 
